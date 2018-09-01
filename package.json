@@ -13,6 +13,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "serverless": "^1.30.3"
+    "serverless": "^1.30.3",
+    "serverless-step-functions": "^1.7.2"
   }
 }
