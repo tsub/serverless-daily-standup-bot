@@ -14,6 +14,6 @@
   "license": "ISC",
   "devDependencies": {
     "serverless": "^1.30.3",
-    "serverless-step-functions": "^1.7.2"
+    "serverless-step-functions": "1.6.1"
   }
 }
