@@ -1,0 +1,19 @@
+Resources:
+  DynamoDBStandUpsTable:
+    Type: AWS::DynamoDB::Table
+    # DeletionPolicy: Retain # TODO: uncomment when released
+    Properties:
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+        - AttributeName: date
+          KeyType: RANGE
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: date
+          AttributeType: S
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      TableName: ${self:custom.resourcePrefix}-standups

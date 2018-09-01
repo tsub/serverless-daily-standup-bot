@@ -3,9 +3,13 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"os"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/guregu/dynamo"
 )
 
 // Response is of type APIGatewayProxyResponse since we're leveraging the
@@ -37,6 +41,13 @@ type event struct {
 	ChannelType     string `json:"channel_type"`
 }
 
+type standup struct {
+	UserID string `dynamo:"user_id"`
+	Date   string `dynamo:"date"`
+}
+
+var standupsTable = os.Getenv("STANDUPS_TABLE")
+
 // Handler is our lambda handler invoked by the `lambda.Start` function call
 func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (resp Response, err error) {
 	var envelope envelope
@@ -56,6 +67,14 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (resp R
 			},
 		}
 	case "event_callback":
+		db := dynamo.New(session.New())
+		table := db.Table(standupsTable)
+
+		s := standup{UserID: envelope.Event.User, Date: time.Now().Format("2006-01-02")}
+		if err := table.Put(s).Run(); err != nil {
+			return Response{StatusCode: 400}, err
+		}
+
 		resp = Response{
 			StatusCode: 200,
 		}
