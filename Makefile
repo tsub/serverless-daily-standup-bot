@@ -8,4 +8,5 @@ clean:
 
 .PHONY: deploy
 deploy: clean build
-	sls deploy --verbose
+	npm install
+	npm run deploy
