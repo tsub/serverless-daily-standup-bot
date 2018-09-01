@@ -1,2 +1,4 @@
 github.com/aws/aws-lambda-go v1.6.0 h1:T+u/g79zPKw1oJM7xYhvpq7i4Sjc0iVsXZUaqRVVSOg=
 github.com/aws/aws-lambda-go v1.6.0/go.mod h1:zUsUQhAUjYzR8AuduJPCfhBuKWUaDbQiPOG+ouzmE1A=
+github.com/fnproject/fdk-go v0.0.0-20180522161022-1eb29530716f h1:uGU7fQh/8CM5m9t7g2Nnq6S6Coq2XnWdSMfq8oeD2SM=
+github.com/fnproject/fdk-go v0.0.0-20180522161022-1eb29530716f/go.mod h1:hzkP3qqXx+1pRBh2QVKr1I+jJ+5xrHIlh5z59XKZ/k0=
