@@ -25,3 +25,9 @@ functions:
       - http:
           path: world
           method: get
+  webhook:
+    handler: bin/webhook
+    events:
+      - http:
+          path: webhook
+          method: post
