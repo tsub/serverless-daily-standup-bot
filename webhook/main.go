@@ -14,29 +14,50 @@ import (
 // https://serverless.com/framework/docs/providers/aws/events/apigateway/#lambda-proxy-integration
 type Response events.APIGatewayProxyResponse
 
-type slackEvent struct {
-	Type      string `json:"type"`
-	Token     string `json:"token"`
-	Challenge string `json:"challenge"`
+type envelope struct {
+	Type        string   `json:"type"`
+	APIAppID    string   `json:"api_app_id"`
+	Token       string   `json:"token"`
+	Challenge   string   `json:"challenge"`
+	TeamID      string   `json:"team_id"`
+	Event       event    `json:"event"`
+	EventID     string   `json:"event_id"`
+	EventTime   int      `json:"event_time"`
+	AuthedUsers []string `json:"authed_users"`
+}
+
+type event struct {
+	Type            string `json:"type"`
+	User            string `json:"user"`
+	Text            string `json:"text"`
+	ClientMessageID string `json:"client_msg_id"`
+	Timestamp       string `json:"ts"`
+	Channel         string `json:"channel"`
+	EventTimestamp  string `json:"event_ts"`
+	ChannelType     string `json:"channel_type"`
 }
 
 // Handler is our lambda handler invoked by the `lambda.Start` function call
 func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (resp Response, err error) {
-	var event slackEvent
+	var envelope envelope
 
-	if err := json.Unmarshal([]byte(request.Body), &event); err != nil {
+	if err := json.Unmarshal([]byte(request.Body), &envelope); err != nil {
 		return Response{StatusCode: 400}, err
 	}
 
-	switch event.Type {
+	switch envelope.Type {
 	case "url_verification":
 		resp = Response{
 			StatusCode:      200,
 			IsBase64Encoded: false,
-			Body:            event.Challenge,
+			Body:            envelope.Challenge,
 			Headers: map[string]string{
 				"Content-Type": "text/plain",
 			},
+		}
+	case "event_callback":
+		resp = Response{
+			StatusCode: 200,
 		}
 	default:
 		resp = Response{
