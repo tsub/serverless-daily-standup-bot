@@ -17,7 +17,7 @@ type input struct {
 	TargetChannelID string `json:"target_channel_id"`
 }
 
-type setting struct {
+type Setting struct {
 	TargetChannelID string   `dynamo:"target_channel_id"`
 	Questions       []string `dynamo:"questions,set"`
 	UserIDs         []string `dynamo:"user_ids,set"`
@@ -33,10 +33,10 @@ type standup struct {
 var settingsTable = os.Getenv("SETTINGS_TABLE")
 var standupsTable = os.Getenv("STANDUPS_TABLE")
 
-func getSetting(db *dynamo.DB, targetChannelID string) (*setting, error) {
+func getSetting(db *dynamo.DB, targetChannelID string) (*Setting, error) {
 	table := db.Table(settingsTable)
 
-	var s setting
+	var s Setting
 	if err := table.Get("target_channel_id", targetChannelID).One(&s); err != nil {
 		return nil, err
 	}
@@ -61,32 +61,32 @@ func putStandup(db *dynamo.DB, userID string, questions []string) error {
 }
 
 // Handler is our lambda handler invoked by the `lambda.Start` function call
-func Handler(ctx context.Context, e events.CloudWatchEvent) error {
+func Handler(ctx context.Context, e events.CloudWatchEvent) (Setting, error) {
 	var input input
 
 	if err := json.Unmarshal(e.Detail, &input); err != nil {
-		return err
+		return Setting{}, err
 	}
 
 	if input.TargetChannelID == "" {
 		log.Println("There is no target_channel_id")
-		return nil
+		return Setting{}, nil
 	}
 
 	db := dynamo.New(session.New())
 
-	setting, err := getSetting(db, input.TargetChannelID)
+	s, err := getSetting(db, input.TargetChannelID)
 	if err != nil {
-		return err
+		return Setting{}, err
 	}
 
-	for _, userID := range setting.UserIDs {
-		if err := putStandup(db, userID, setting.Questions); err != nil {
-			return err
+	for _, userID := range s.UserIDs {
+		if err := putStandup(db, userID, s.Questions); err != nil {
+			return Setting{}, err
 		}
 	}
 
-	return nil
+	return *s, nil
 }
 
 func main() {
