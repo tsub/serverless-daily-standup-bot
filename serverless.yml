@@ -9,8 +9,11 @@ provider:
   iamRoleStatements:
   - Effect: Allow
     Action:
+      - dynamodb:GetItem
       - dynamodb:PutItem
-    Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.resourcePrefix}-standups
+    Resource:
+      - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.resourcePrefix}-standups
+      - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.resourcePrefix}-settings
 
 custom:
   currentStage: ${opt:stage, self:provider.stage}
@@ -43,5 +46,10 @@ functions:
           method: post
     environment:
       STANDUPS_TABLE: ${self:custom.resourcePrefix}-standups
+  start:
+    handler: bin/start
+    environment:
+      STANDUPS_TABLE: ${self:custom.resourcePrefix}-standups
+      SETTINGS_TABLE: ${self:custom.resourcePrefix}-settings
 
 resources: ${file(resources.yml)}

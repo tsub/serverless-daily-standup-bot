@@ -17,3 +17,18 @@ Resources:
         ReadCapacityUnits: 1
         WriteCapacityUnits: 1
       TableName: ${self:custom.resourcePrefix}-standups
+
+  DynamoDBSettingsTable:
+    Type: AWS::DynamoDB::Table
+    # DeletionPolicy: Retain # TODO: uncomment when released
+    Properties:
+      KeySchema:
+        - AttributeName: target_channel_id
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: target_channel_id
+          AttributeType: S
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      TableName: ${self:custom.resourcePrefix}-settings
