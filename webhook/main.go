@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 
@@ -15,26 +14,34 @@ import (
 // https://serverless.com/framework/docs/providers/aws/events/apigateway/#lambda-proxy-integration
 type Response events.APIGatewayProxyResponse
 
+type slackEvent struct {
+	Type      string `json:"type"`
+	Token     string `json:"token"`
+	Challenge string `json:"challenge"`
+}
+
 // Handler is our lambda handler invoked by the `lambda.Start` function call
-func Handler(ctx context.Context) (Response, error) {
-	var buf bytes.Buffer
+func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (resp Response, err error) {
+	var event slackEvent
 
-	body, err := json.Marshal(map[string]interface{}{
-		"message": "Go Serverless v1.0! Your function executed successfully!",
-	})
-	if err != nil {
-		return Response{StatusCode: 404}, err
+	if err := json.Unmarshal([]byte(request.Body), &event); err != nil {
+		return Response{StatusCode: 400}, err
 	}
-	json.HTMLEscape(&buf, body)
 
-	resp := Response{
-		StatusCode:      200,
-		IsBase64Encoded: false,
-		Body:            buf.String(),
-		Headers: map[string]string{
-			"Content-Type":           "application/json",
-			"X-MyCompany-Func-Reply": "hello-handler",
-		},
+	switch event.Type {
+	case "url_verification":
+		resp = Response{
+			StatusCode:      200,
+			IsBase64Encoded: false,
+			Body:            event.Challenge,
+			Headers: map[string]string{
+				"Content-Type": "text/plain",
+			},
+		}
+	default:
+		resp = Response{
+			StatusCode: 200,
+		}
 	}
 
 	return resp, nil
