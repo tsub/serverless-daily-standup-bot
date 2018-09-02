@@ -76,7 +76,11 @@ stepFunctions:
               - Variable: "$.finished"
                 BooleanEquals: true
                 Next: SucceedState
-            Default: FilterOutputState
+            Default: WaitState
+          WaitState:
+            Type: Wait
+            Seconds: 1
+            Next: FilterOutputState
           FilterOutputState:
             Type: Pass
             OutputPath: "$.setting"
