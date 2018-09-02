@@ -12,3 +12,8 @@ clean:
 deploy: clean build
 	npm install
 	npm run deploy
+
+.PHONY: deploy-prod
+deploy-prod: clean build
+	npm install
+	npm run deploy -- -s prod
