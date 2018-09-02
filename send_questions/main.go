@@ -19,10 +19,11 @@ type Setting struct {
 }
 
 type standup struct {
-	UserID    string   `dynamo:"user_id"`
-	Date      string   `dynamo:"date"`
-	Questions []string `dynamo:"questions,set"`
-	Answers   []string `dynamo:"answers,set"`
+	UserID             string   `dynamo:"user_id"`
+	Date               string   `dynamo:"date"`
+	Questions          []string `dynamo:"questions,set"`
+	Answers            []string `dynamo:"answers,set"`
+	SentQuestionsCount int      `dynamo:"sent_questions_count"`
 }
 
 var standupsTable = os.Getenv("STANDUPS_TABLE")
@@ -40,6 +41,17 @@ func getStandup(db *dynamo.DB, userID string) (*standup, error) {
 	return &s, nil
 }
 
+func (s *standup) incrementSentQuestionsCount(db *dynamo.DB) error {
+	table := db.Table(standupsTable)
+
+	s.SentQuestionsCount++
+	if err := table.Put(s).Run(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Handler is our lambda handler invoked by the `lambda.Start` function call
 func Handler(ctx context.Context, s Setting) (Setting, error) {
 	db := dynamo.New(session.New())
@@ -50,8 +62,8 @@ func Handler(ctx context.Context, s Setting) (Setting, error) {
 			return Setting{}, err
 		}
 
-		if len(su.Questions)-len(su.Answers) > 0 {
-			q := su.Questions[len(su.Answers)]
+		if su.SentQuestionsCount == len(su.Answers) && len(su.Answers) != len(su.Questions) {
+			q := su.Questions[su.SentQuestionsCount]
 
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
@@ -64,6 +76,8 @@ func Handler(ctx context.Context, s Setting) (Setting, error) {
 			}
 
 			log.Println(resp)
+
+			su.incrementSentQuestionsCount(db)
 		}
 	}
 

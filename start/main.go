@@ -24,10 +24,11 @@ type Setting struct {
 }
 
 type standup struct {
-	UserID    string   `dynamo:"user_id"`
-	Date      string   `dynamo:"date"`
-	Questions []string `dynamo:"questions,set"`
-	Answers   []string `dynamo:"answers,set"`
+	UserID             string   `dynamo:"user_id"`
+	Date               string   `dynamo:"date"`
+	Questions          []string `dynamo:"questions,set"`
+	Answers            []string `dynamo:"answers,set"`
+	SentQuestionsCount int      `dynamo:"sent_questions_count"`
 }
 
 var settingsTable = os.Getenv("SETTINGS_TABLE")
@@ -48,10 +49,11 @@ func putStandup(db *dynamo.DB, userID string, questions []string) error {
 	table := db.Table(standupsTable)
 
 	s := standup{
-		UserID:    userID,
-		Date:      time.Now().Format("2006-01-02"),
-		Questions: questions,
-		Answers:   []string{},
+		UserID:             userID,
+		Date:               time.Now().Format("2006-01-02"),
+		Questions:          questions,
+		Answers:            []string{},
+		SentQuestionsCount: 0,
 	}
 	if err := table.Put(s).Run(); err != nil {
 		return err

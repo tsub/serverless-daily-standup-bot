@@ -21,10 +21,11 @@ type setting struct {
 	UserIDs         []string `dynamo:"user_ids,set"`
 }
 type standup struct {
-	UserID    string   `dynamo:"user_id"`
-	Date      string   `dynamo:"date"`
-	Questions []string `dynamo:"questions,set"`
-	Answers   []string `dynamo:"answers,set"`
+	UserID             string   `dynamo:"user_id"`
+	Date               string   `dynamo:"date"`
+	Questions          []string `dynamo:"questions,set"`
+	Answers            []string `dynamo:"answers,set"`
+	SentQuestionsCount int      `dynamo:"sent_questions_count"`
 }
 
 var standupsTable = os.Getenv("STANDUPS_TABLE")
