@@ -51,5 +51,10 @@ functions:
     environment:
       STANDUPS_TABLE: ${self:custom.resourcePrefix}-standups
       SETTINGS_TABLE: ${self:custom.resourcePrefix}-settings
+  send-questions:
+    handler: bin/send_questions
+    environment:
+      STANDUPS_TABLE: ${self:custom.resourcePrefix}-standups
+      SLACK_TOKEN: ${env:SLACK_TOKEN}
 
 resources: ${file(resources.yml)}
