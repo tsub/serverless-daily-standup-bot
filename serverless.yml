@@ -62,3 +62,39 @@ functions:
       STANDUPS_TABLE: ${self:custom.resourcePrefix}-standups
 
 resources: ${file(resources.yml)}
+
+stepFunctions:
+  stateMachines:
+    dailyStandup:
+      definition:
+        StartAt: StartState
+        States:
+          StartState:
+            Type: Task
+            Resource: arn:aws:lambda:${self:provider.region}:#{AWS::AccountId}:function:${self:custom.resourcePrefix}-start
+            Next: SendQuestionsState
+          SendQuestionsState:
+            Type: Task
+            Resource: arn:aws:lambda:${self:provider.region}:#{AWS::AccountId}:function:${self:custom.resourcePrefix}-send-questions
+            Next: IsAllUserFinishedState
+          IsAllUserFinishedState:
+            Type: Task
+            Resource: arn:aws:lambda:${self:provider.region}:#{AWS::AccountId}:function:${self:custom.resourcePrefix}-is-all-user-finished
+            Next: SwitchWithFinishedState
+          SwitchWithFinishedState:
+            Type: Choice
+            Choices:
+              - Variable: "$.finished"
+                BooleanEquals: true
+                Next: SucceedState
+            Default: FilterOutputState
+          FilterOutputState:
+            Type: Pass
+            OutputPath: "$.setting"
+            Next: SendQuestionsState
+          SucceedState:
+            Type: Succeed
+
+plugins:
+  - serverless-step-functions
+  - serverless-pseudo-parameters
