@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/guregu/dynamo"
 	"github.com/lestrrat-go/slack"
+	"github.com/lestrrat-go/slack/objects"
 )
 
 type Setting struct {
@@ -24,6 +25,7 @@ type standup struct {
 	Questions          []string `dynamo:"questions,set"`
 	Answers            []string `dynamo:"answers,set"`
 	SentQuestionsCount int      `dynamo:"sent_questions_count"`
+	Finished           bool     `dynamo:"finished"`
 }
 
 var standupsTable = os.Getenv("STANDUPS_TABLE")
@@ -52,9 +54,25 @@ func (s *standup) incrementSentQuestionsCount(db *dynamo.DB) error {
 	return nil
 }
 
+func (s *standup) finish(db *dynamo.DB) error {
+	table := db.Table(standupsTable)
+
+	s.Finished = true
+	if err := table.Put(s).Run(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Handler is our lambda handler invoked by the `lambda.Start` function call
 func Handler(ctx context.Context, s Setting) (Setting, error) {
 	db := dynamo.New(session.New())
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	cl := slack.New(slackToken)
 
 	for _, userID := range s.UserIDs {
 		su, err := getStandup(db, userID)
@@ -65,11 +83,6 @@ func Handler(ctx context.Context, s Setting) (Setting, error) {
 		if su.SentQuestionsCount == len(su.Answers) && len(su.Answers) != len(su.Questions) {
 			q := su.Questions[su.SentQuestionsCount]
 
-			ctx, cancel := context.WithCancel(context.Background())
-			defer cancel()
-
-			cl := slack.New(slackToken)
-
 			resp, err := cl.Chat().PostMessage(userID).AsUser(true).Text(q).Do(ctx)
 			if err != nil {
 				return Setting{}, err
@@ -78,6 +91,28 @@ func Handler(ctx context.Context, s Setting) (Setting, error) {
 			log.Println(resp)
 
 			su.incrementSentQuestionsCount(db)
+		}
+
+		if len(su.Answers) == len(su.Questions) && !su.Finished {
+			message := cl.Chat().PostMessage(s.TargetChannelID).AsUser(true)
+
+			for i := range su.Questions {
+				attachment := &objects.Attachment{
+					Title: su.Questions[i],
+					Text:  su.Answers[i],
+				}
+
+				message.Attachment(attachment)
+			}
+
+			resp, err := message.Do(ctx)
+			if err != nil {
+				return Setting{}, err
+			}
+
+			log.Println(resp)
+
+			su.finish(db)
 		}
 	}
 

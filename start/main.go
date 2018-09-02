@@ -29,6 +29,7 @@ type standup struct {
 	Questions          []string `dynamo:"questions,set"`
 	Answers            []string `dynamo:"answers,set"`
 	SentQuestionsCount int      `dynamo:"sent_questions_count"`
+	Finished           bool     `dynamo:"finished"`
 }
 
 var settingsTable = os.Getenv("SETTINGS_TABLE")
@@ -54,6 +55,7 @@ func putStandup(db *dynamo.DB, userID string, questions []string) error {
 		Questions:          questions,
 		Answers:            []string{},
 		SentQuestionsCount: 0,
+		Finished:           false,
 	}
 	if err := table.Put(s).Run(); err != nil {
 		return err

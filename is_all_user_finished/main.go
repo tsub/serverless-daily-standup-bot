@@ -26,6 +26,7 @@ type standup struct {
 	Questions          []string `dynamo:"questions,set"`
 	Answers            []string `dynamo:"answers,set"`
 	SentQuestionsCount int      `dynamo:"sent_questions_count"`
+	Finished           bool     `dynamo:"finished"`
 }
 
 var standupsTable = os.Getenv("STANDUPS_TABLE")
@@ -53,7 +54,7 @@ func Handler(ctx context.Context, s setting) (Response, error) {
 			return Response{}, err
 		}
 
-		if len(su.Questions) == len(su.Answers) {
+		if su.Finished {
 			finishedCount++
 		}
 	}

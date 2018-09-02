@@ -47,6 +47,7 @@ type standup struct {
 	Questions          []string `dynamo:"questions,set"`
 	Answers            []string `dynamo:"answers,set"`
 	SentQuestionsCount int      `dynamo:"sent_questions_count"`
+	Finished           bool     `dynamo:"finished"`
 }
 
 var standupsTable = os.Getenv("STANDUPS_TABLE")
