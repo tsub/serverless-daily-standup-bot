@@ -56,5 +56,9 @@ functions:
     environment:
       STANDUPS_TABLE: ${self:custom.resourcePrefix}-standups
       SLACK_TOKEN: ${env:SLACK_TOKEN}
+  is-all-user-finished:
+    handler: bin/is_all_user_finished
+    environment:
+      STANDUPS_TABLE: ${self:custom.resourcePrefix}-standups
 
 resources: ${file(resources.yml)}

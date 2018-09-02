@@ -2,22 +2,24 @@ package main
 
 import (
 	"context"
-	"log"
 	"os"
 	"time"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/guregu/dynamo"
-	"github.com/lestrrat-go/slack"
 )
 
-type Setting struct {
+type Response struct {
+	Finished bool    `json:"finished"`
+	Setting  setting `json:"setting"`
+}
+
+type setting struct {
 	TargetChannelID string   `dynamo:"target_channel_id"`
 	Questions       []string `dynamo:"questions,set"`
 	UserIDs         []string `dynamo:"user_ids,set"`
 }
-
 type standup struct {
 	UserID    string   `dynamo:"user_id"`
 	Date      string   `dynamo:"date"`
@@ -26,7 +28,6 @@ type standup struct {
 }
 
 var standupsTable = os.Getenv("STANDUPS_TABLE")
-var slackToken = os.Getenv("SLACK_TOKEN")
 
 func getStandup(db *dynamo.DB, userID string) (*standup, error) {
 	table := db.Table(standupsTable)
@@ -41,33 +42,26 @@ func getStandup(db *dynamo.DB, userID string) (*standup, error) {
 }
 
 // Handler is our lambda handler invoked by the `lambda.Start` function call
-func Handler(ctx context.Context, s Setting) (Setting, error) {
+func Handler(ctx context.Context, s setting) (Response, error) {
 	db := dynamo.New(session.New())
 
+	finishedCount := 0
 	for _, userID := range s.UserIDs {
 		su, err := getStandup(db, userID)
 		if err != nil {
-			return Setting{}, err
+			return Response{}, err
 		}
 
-		if len(su.Questions)-len(su.Answers) > 0 {
-			q := su.Questions[len(su.Answers)]
-
-			ctx, cancel := context.WithCancel(context.Background())
-			defer cancel()
-
-			cl := slack.New(slackToken)
-
-			resp, err := cl.Chat().PostMessage(userID).AsUser(true).Text(q).Do(ctx)
-			if err != nil {
-				return Setting{}, err
-			}
-
-			log.Println(resp)
+		if len(su.Questions) == len(su.Answers) {
+			finishedCount++
 		}
 	}
 
-	return s, nil
+	if finishedCount == len(s.UserIDs) {
+		return Response{Finished: true}, nil
+	}
+
+	return Response{Finished: false, Setting: s}, nil
 }
 
 func main() {
