@@ -26,18 +26,6 @@ package:
    - ./bin/**
 
 functions:
-  hello:
-    handler: bin/hello
-    events:
-      - http:
-          path: hello
-          method: get
-  world:
-    handler: bin/world
-    events:
-      - http:
-          path: world
-          method: get
   webhook:
     handler: bin/webhook
     events:
