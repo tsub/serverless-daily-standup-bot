@@ -3,13 +3,12 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"os"
-	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/guregu/dynamo"
+	"github.com/tsub/daily-standup-bot/lib/standup"
 )
 
 // Response is of type APIGatewayProxyResponse since we're leveraging the
@@ -41,40 +40,6 @@ type event struct {
 	ChannelType     string `json:"channel_type"`
 }
 
-type standup struct {
-	UserID             string   `dynamo:"user_id"`
-	Date               string   `dynamo:"date"`
-	Questions          []string `dynamo:"questions,set"`
-	Answers            []string `dynamo:"answers,set"`
-	SentQuestionsCount int      `dynamo:"sent_questions_count"`
-	Finished           bool     `dynamo:"finished"`
-}
-
-var standupsTable = os.Getenv("STANDUPS_TABLE")
-
-func getStandup(db *dynamo.DB, userID string) (*standup, error) {
-	table := db.Table(standupsTable)
-	today := time.Now().Format("2006-01-02")
-
-	var s standup
-	if err := table.Get("user_id", userID).Range("date", dynamo.Equal, today).One(&s); err != nil {
-		return nil, err
-	}
-
-	return &s, nil
-}
-
-func (s *standup) appendAnswer(db *dynamo.DB, answer string) error {
-	table := db.Table(standupsTable)
-
-	s.Answers = append(s.Answers, answer)
-	if err := table.Put(s).Run(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // Handler is our lambda handler invoked by the `lambda.Start` function call
 func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (resp Response, err error) {
 	var envelope envelope
@@ -96,12 +61,12 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (resp R
 	case "event_callback":
 		db := dynamo.New(session.New())
 
-		s, err := getStandup(db, envelope.Event.User)
+		s, err := standup.Get(db, envelope.Event.User)
 		if err != nil {
 			return Response{StatusCode: 404}, err
 		}
 
-		if err := s.appendAnswer(db, envelope.Event.Text); err != nil {
+		if err := s.AppendAnswer(db, envelope.Event.Text); err != nil {
 			return Response{StatusCode: 400}, err
 		}
 
