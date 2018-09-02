@@ -10,7 +10,7 @@ var settingsTable = os.Getenv("SETTINGS_TABLE")
 
 type Setting struct {
 	TargetChannelID string   `dynamo:"target_channel_id"`
-	Questions       []string `dynamo:"questions,set"`
+	Questions       []string `dynamo:"questions"`
 	UserIDs         []string `dynamo:"user_ids,set"`
 }
 

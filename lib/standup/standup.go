@@ -12,8 +12,8 @@ var standupsTable = os.Getenv("STANDUPS_TABLE")
 type Standup struct {
 	UserID             string   `dynamo:"user_id"`
 	Date               string   `dynamo:"date"`
-	Questions          []string `dynamo:"questions,set"`
-	Answers            []string `dynamo:"answers,set"`
+	Questions          []string `dynamo:"questions"`
+	Answers            []string `dynamo:"answers"`
 	SentQuestionsCount int      `dynamo:"sent_questions_count"`
 	Finished           bool     `dynamo:"finished"`
 }
