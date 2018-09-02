@@ -42,11 +42,36 @@ type event struct {
 }
 
 type standup struct {
-	UserID string `dynamo:"user_id"`
-	Date   string `dynamo:"date"`
+	UserID    string   `dynamo:"user_id"`
+	Date      string   `dynamo:"date"`
+	Questions []string `dynamo:"questions,set"`
+	Answers   []string `dynamo:"answers,set"`
 }
 
 var standupsTable = os.Getenv("STANDUPS_TABLE")
+
+func getStandup(db *dynamo.DB, userID string) (*standup, error) {
+	table := db.Table(standupsTable)
+	today := time.Now().Format("2006-01-02")
+
+	var s standup
+	if err := table.Get("user_id", userID).Range("date", dynamo.Equal, today).One(&s); err != nil {
+		return nil, err
+	}
+
+	return &s, nil
+}
+
+func (s *standup) appendAnswer(db *dynamo.DB, answer string) error {
+	table := db.Table(standupsTable)
+
+	s.Answers = append(s.Answers, answer)
+	if err := table.Put(s).Run(); err != nil {
+		return err
+	}
+
+	return nil
+}
 
 // Handler is our lambda handler invoked by the `lambda.Start` function call
 func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (resp Response, err error) {
@@ -68,10 +93,13 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (resp R
 		}
 	case "event_callback":
 		db := dynamo.New(session.New())
-		table := db.Table(standupsTable)
 
-		s := standup{UserID: envelope.Event.User, Date: time.Now().Format("2006-01-02")}
-		if err := table.Put(s).Run(); err != nil {
+		s, err := getStandup(db, envelope.Event.User)
+		if err != nil {
+			return Response{StatusCode: 404}, err
+		}
+
+		if err := s.appendAnswer(db, envelope.Event.Text); err != nil {
 			return Response{StatusCode: 400}, err
 		}
 
