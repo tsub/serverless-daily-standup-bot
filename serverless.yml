@@ -34,6 +34,7 @@ functions:
           method: post
     environment:
       STANDUPS_TABLE: ${self:custom.resourcePrefix}-standups
+      SLACK_BOT_TOKEN: ${env:SLACK_BOT_TOKEN}
   start:
     handler: bin/start
     environment:

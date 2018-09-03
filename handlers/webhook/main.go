@@ -3,12 +3,15 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"log"
+	"os"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/guregu/dynamo"
 	"github.com/tsub/daily-standup-bot/lib/standup"
+	"github.com/tsub/slack"
 )
 
 // Response is of type APIGatewayProxyResponse since we're leveraging the
@@ -39,6 +42,8 @@ type event struct {
 	EventTimestamp  string `json:"event_ts"`
 	ChannelType     string `json:"channel_type"`
 }
+
+var botSlackToken = os.Getenv("SLACK_BOT_TOKEN")
 
 // Handler is our lambda handler invoked by the `lambda.Start` function call
 func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (resp Response, err error) {
@@ -74,6 +79,18 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (resp R
 			if err := s.Cancel(db); err != nil {
 				return Response{StatusCode: 400}, err
 			}
+
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
+			botcl := slack.New(botSlackToken)
+
+			resp, err := botcl.Chat().PostMessage(envelope.Event.User).Text("Stand-up canceled.").AsUser(true).Do(ctx)
+			if err != nil {
+				return Response{StatusCode: 500}, err
+			}
+
+			log.Println(resp)
 
 			return Response{StatusCode: 200}, nil
 		}
