@@ -66,6 +66,10 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (resp R
 			return Response{StatusCode: 404}, err
 		}
 
+		if len(s.Answers) >= len(s.Questions) {
+			return Response{StatusCode: 200}, nil
+		}
+
 		if err := s.AppendAnswer(db, envelope.Event.Text); err != nil {
 			return Response{StatusCode: 400}, err
 		}
