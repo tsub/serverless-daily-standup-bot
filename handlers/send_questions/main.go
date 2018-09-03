@@ -46,6 +46,10 @@ func Handler(ctx context.Context, e events.DynamoDBEvent) error {
 
 			var fields objects.AttachmentFieldList
 			for i := range questions {
+				if answers[i].String() == "none" {
+					continue
+				}
+
 				fields.Append(&objects.AttachmentField{
 					Title: questions[i].String(),
 					Value: answers[i].String(),
