@@ -1,17 +1,12 @@
 {
   "name": "daily-standup-bot",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
   "scripts": {
     "deploy": "sls deploy --verbose",
     "remove": "sls remove",
     "invoke": "sls invoke",
     "logs": "sls logs"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
     "serverless": "^1.30.3",
     "serverless-pseudo-parameters": "^2.2.0",
