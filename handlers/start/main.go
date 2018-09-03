@@ -2,10 +2,8 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 
-	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/guregu/dynamo"
@@ -18,13 +16,7 @@ type input struct {
 }
 
 // Handler is our lambda handler invoked by the `lambda.Start` function call
-func Handler(ctx context.Context, e events.CloudWatchEvent) (setting.Setting, error) {
-	var input input
-
-	if err := json.Unmarshal(e.Detail, &input); err != nil {
-		return setting.Setting{}, err
-	}
-
+func Handler(ctx context.Context, input input) (setting.Setting, error) {
 	if input.TargetChannelID == "" {
 		log.Println("There is no target_channel_id")
 		return setting.Setting{}, nil
