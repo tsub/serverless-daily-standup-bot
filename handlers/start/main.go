@@ -29,8 +29,6 @@ func Handler(ctx context.Context, input input) error {
 		return err
 	}
 
-	log.Println(s.Questions)
-
 	for _, userID := range s.UserIDs {
 		if err := standup.Initial(db, userID, s.Questions, s.TargetChannelID); err != nil {
 			return err
