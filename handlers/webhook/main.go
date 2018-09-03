@@ -70,6 +70,14 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (resp R
 			return Response{StatusCode: 200}, nil
 		}
 
+		if envelope.Event.Text == "cancel" {
+			if err := s.Cancel(db); err != nil {
+				return Response{StatusCode: 400}, err
+			}
+
+			return Response{StatusCode: 200}, nil
+		}
+
 		if err := s.AppendAnswer(db, envelope.Event.Text); err != nil {
 			return Response{StatusCode: 400}, err
 		}

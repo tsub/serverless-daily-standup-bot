@@ -57,6 +57,10 @@ func Handler(ctx context.Context, e events.DynamoDBEvent) error {
 				})
 			}
 
+			if len(fields) == 0 {
+				return nil
+			}
+
 			attachment := &objects.Attachment{
 				AuthorName: profile.RealName,
 				AuthorIcon: profile.Image32,

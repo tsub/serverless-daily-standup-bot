@@ -28,6 +28,22 @@ func (s *Standup) AppendAnswer(db *dynamo.DB, answer string) error {
 	return nil
 }
 
+func (s *Standup) Cancel(db *dynamo.DB) error {
+	table := db.Table(standupsTable)
+
+	var cancels []string
+	for range s.Questions {
+		cancels = append(cancels, "none")
+	}
+	s.Answers = cancels
+
+	if err := table.Put(s).Run(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func Get(db *dynamo.DB, userID string) (*Standup, error) {
 	table := db.Table(standupsTable)
 	today := time.Now().Format("2006-01-02")
