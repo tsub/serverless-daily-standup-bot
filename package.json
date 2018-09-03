@@ -8,8 +8,6 @@
     "logs": "sls logs"
   },
   "devDependencies": {
-    "serverless": "^1.30.3",
-    "serverless-pseudo-parameters": "^2.2.0",
-    "serverless-step-functions": "1.6.1"
+    "serverless": "^1.30.3"
   }
 }

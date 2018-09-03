@@ -10,34 +10,11 @@ import (
 var standupsTable = os.Getenv("STANDUPS_TABLE")
 
 type Standup struct {
-	UserID             string   `dynamo:"user_id"`
-	Date               string   `dynamo:"date"`
-	Questions          []string `dynamo:"questions"`
-	Answers            []string `dynamo:"answers"`
-	SentQuestionsCount int      `dynamo:"sent_questions_count"`
-	Finished           bool     `dynamo:"finished"`
-}
-
-func (s *Standup) IncrementSentQuestionsCount(db *dynamo.DB) error {
-	table := db.Table(standupsTable)
-
-	s.SentQuestionsCount++
-	if err := table.Put(s).Run(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *Standup) Finish(db *dynamo.DB) error {
-	table := db.Table(standupsTable)
-
-	s.Finished = true
-	if err := table.Put(s).Run(); err != nil {
-		return err
-	}
-
-	return nil
+	UserID          string   `dynamo:"user_id"`
+	Date            string   `dynamo:"date"`
+	Questions       []string `dynamo:"questions"`
+	Answers         []string `dynamo:"answers"`
+	TargetChannelID string   `dynamo:"target_channel_id"`
 }
 
 func (s *Standup) AppendAnswer(db *dynamo.DB, answer string) error {
@@ -63,16 +40,15 @@ func Get(db *dynamo.DB, userID string) (*Standup, error) {
 	return &s, nil
 }
 
-func Initial(db *dynamo.DB, userID string, questions []string) error {
+func Initial(db *dynamo.DB, userID string, questions []string, targetChannelID string) error {
 	table := db.Table(standupsTable)
 
 	s := Standup{
-		UserID:             userID,
-		Date:               time.Now().Format("2006-01-02"),
-		Questions:          questions,
-		Answers:            []string{},
-		SentQuestionsCount: 0,
-		Finished:           false,
+		UserID:          userID,
+		Date:            time.Now().Format("2006-01-02"),
+		Questions:       questions,
+		Answers:         []string{},
+		TargetChannelID: targetChannelID,
 	}
 	if err := table.Put(s).Run(); err != nil {
 		return err

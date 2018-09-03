@@ -41,53 +41,16 @@ functions:
       SETTINGS_TABLE: ${self:custom.resourcePrefix}-settings
   send-questions:
     handler: bin/send_questions
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt:
+              - DynamoDBStandUpsTable
+              - StreamArn
     environment:
       STANDUPS_TABLE: ${self:custom.resourcePrefix}-standups
       SLACK_TOKEN: ${env:SLACK_TOKEN}
       SLACK_BOT_TOKEN: ${env:SLACK_BOT_TOKEN}
-  is-all-user-finished:
-    handler: bin/is_all_user_finished
-    environment:
-      STANDUPS_TABLE: ${self:custom.resourcePrefix}-standups
 
 resources: ${file(resources.yml)}
-
-stepFunctions:
-  stateMachines:
-    dailyStandup:
-      definition:
-        StartAt: StartState
-        States:
-          StartState:
-            Type: Task
-            Resource: arn:aws:lambda:${self:provider.region}:#{AWS::AccountId}:function:${self:custom.resourcePrefix}-start
-            Next: SendQuestionsState
-          SendQuestionsState:
-            Type: Task
-            Resource: arn:aws:lambda:${self:provider.region}:#{AWS::AccountId}:function:${self:custom.resourcePrefix}-send-questions
-            Next: IsAllUserFinishedState
-          IsAllUserFinishedState:
-            Type: Task
-            Resource: arn:aws:lambda:${self:provider.region}:#{AWS::AccountId}:function:${self:custom.resourcePrefix}-is-all-user-finished
-            Next: SwitchWithFinishedState
-          SwitchWithFinishedState:
-            Type: Choice
-            Choices:
-              - Variable: "$.finished"
-                BooleanEquals: true
-                Next: SucceedState
-            Default: WaitState
-          WaitState:
-            Type: Wait
-            Seconds: 1
-            Next: FilterOutputState
-          FilterOutputState:
-            Type: Pass
-            OutputPath: "$.setting"
-            Next: SendQuestionsState
-          SucceedState:
-            Type: Succeed
-
-plugins:
-  - serverless-step-functions
-  - serverless-pseudo-parameters

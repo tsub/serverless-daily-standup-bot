@@ -17,6 +17,8 @@ Resources:
         ReadCapacityUnits: 1
         WriteCapacityUnits: 1
       TableName: ${self:custom.resourcePrefix}-standups
+      StreamSpecification:
+        StreamViewType: NEW_IMAGE
 
   DynamoDBSettingsTable:
     Type: AWS::DynamoDB::Table

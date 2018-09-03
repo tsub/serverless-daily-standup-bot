@@ -16,28 +16,28 @@ type input struct {
 }
 
 // Handler is our lambda handler invoked by the `lambda.Start` function call
-func Handler(ctx context.Context, input input) (setting.Setting, error) {
+func Handler(ctx context.Context, input input) error {
 	if input.TargetChannelID == "" {
 		log.Println("There is no target_channel_id")
-		return setting.Setting{}, nil
+		return nil
 	}
 
 	db := dynamo.New(session.New())
 
 	s, err := setting.Get(db, input.TargetChannelID)
 	if err != nil {
-		return setting.Setting{}, err
+		return err
 	}
 
 	log.Println(s.Questions)
 
 	for _, userID := range s.UserIDs {
-		if err := standup.Initial(db, userID, s.Questions); err != nil {
-			return setting.Setting{}, err
+		if err := standup.Initial(db, userID, s.Questions, s.TargetChannelID); err != nil {
+			return err
 		}
 	}
 
-	return *s, nil
+	return nil
 }
 
 func main() {
