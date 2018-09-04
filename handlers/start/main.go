@@ -30,6 +30,17 @@ func Handler(ctx context.Context, input input) error {
 	}
 
 	for _, userID := range s.UserIDs {
+		_, err := standup.Get(db, userID)
+		if err != nil {
+			// To skip "dynamo: no item found" error
+			continue
+		}
+
+		log.Println("Skip since it has already been executed today.")
+		return nil
+	}
+
+	for _, userID := range s.UserIDs {
 		if err := standup.Initial(db, userID, s.Questions, s.TargetChannelID); err != nil {
 			return err
 		}
