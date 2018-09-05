@@ -49,9 +49,13 @@ functions:
             Fn::GetAtt:
               - DynamoDBStandUpsTable
               - StreamArn
+          startingPosition: TRIM_HORIZON
     environment:
       STANDUPS_TABLE: ${self:custom.resourcePrefix}-standups
       SLACK_TOKEN: ${env:SLACK_TOKEN}
       SLACK_BOT_TOKEN: ${env:SLACK_BOT_TOKEN}
 
 resources: ${file(resources.yml)}
+
+plugins:
+  - serverless-sam

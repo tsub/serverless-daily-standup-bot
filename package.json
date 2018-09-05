@@ -5,9 +5,11 @@
     "deploy": "sls deploy --verbose",
     "remove": "sls remove",
     "invoke": "sls invoke",
-    "logs": "sls logs"
+    "logs": "sls logs",
+    "sam-export": "sls sam export --output template.yaml"
   },
   "devDependencies": {
-    "serverless": "^1.30.3"
+    "serverless": "^1.30.3",
+    "serverless-sam": "^0.1.0"
   }
 }
