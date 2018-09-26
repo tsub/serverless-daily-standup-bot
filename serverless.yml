@@ -14,6 +14,13 @@ provider:
     Resource:
       - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.resourcePrefix}-standups
       - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.resourcePrefix}-settings
+  - Effect: Allow
+    Action:
+      - events:PutRule
+      - events:PutTargets
+    Resource:
+      - '*'
+
 
 custom:
   currentStage: ${opt:stage, self:provider.stage}
@@ -54,6 +61,31 @@ functions:
       STANDUPS_TABLE: ${self:custom.resourcePrefix}-standups
       SLACK_TOKEN: ${env:SLACK_TOKEN}
       SLACK_BOT_TOKEN: ${env:SLACK_BOT_TOKEN}
+  slash:
+    handler: bin/slash
+    events:
+      - http:
+          path: slash
+          method: post
+    environment:
+      SLACK_BOT_TOKEN: ${env:SLACK_BOT_TOKEN}
+  interactive:
+    handler: bin/interactive
+    events:
+      - http:
+          path: interactive
+          method: post
+    environment:
+      SETTINGS_TABLE: ${self:custom.resourcePrefix}-settings
+      SLACK_BOT_TOKEN: ${env:SLACK_BOT_TOKEN}
+      RESOURCE_PREFIX: ${self:custom.resourcePrefix}
+      START_FUNCTION_ARN:
+        Fn::Join:
+          - ':'
+          -
+            - 'arn:aws:lambda:${self:provider.region}'
+            - Ref: 'AWS::AccountId'
+            - 'function:${self:custom.resourcePrefix}-start'
 
 resources: ${file(resources.yml)}
 

@@ -5,6 +5,8 @@ build:
 	env GOOS=linux go build -ldflags="-s -w" -o bin/webhook handlers/webhook/main.go
 	env GOOS=linux go build -ldflags="-s -w" -o bin/start handlers/start/main.go
 	env GOOS=linux go build -ldflags="-s -w" -o bin/send_questions handlers/send_questions/main.go
+	env GOOS=linux go build -ldflags="-s -w" -o bin/slash handlers/slash/main.go
+	env GOOS=linux go build -ldflags="-s -w" -o bin/interactive handlers/interactive/main.go
 
 .PHONY: watch
 watch:
