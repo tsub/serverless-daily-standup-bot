@@ -47,3 +47,25 @@ schema:
       - -ldflags=-w
       - -o ../../.serverless/bin/webhook
   watcher: *watcher
+
+- name: slash
+  path: ./handlers/slash/
+  commands:
+    build:
+      status: true
+      args:
+      - -ldflags=-s
+      - -ldflags=-w
+      - -o ../../.serverless/bin/slash
+  watcher: *watcher
+
+- name: interactive
+  path: ./handlers/interactive/
+  commands:
+    build:
+      status: true
+      args:
+      - -ldflags=-s
+      - -ldflags=-w
+      - -o ../../.serverless/bin/interactive
+  watcher: *watcher
