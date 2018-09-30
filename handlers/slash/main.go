@@ -2,13 +2,20 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/url"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/cloudwatchevents"
+	"github.com/guregu/dynamo"
 	"github.com/nlopes/slack"
+	"github.com/tsub/daily-standup-bot/lib/setting"
 )
 
 // Response is of type APIGatewayProxyResponse since we're leveraging the
@@ -18,22 +25,47 @@ import (
 type Response events.APIGatewayProxyResponse
 
 var botSlackToken = os.Getenv("SLACK_BOT_TOKEN")
+var resourcePrefix = os.Getenv("RESOURCE_PREFIX")
 
 func startSetting(query url.Values) (Response, error) {
+	sess := session.New()
+	db := dynamo.New(sess)
+	cwe := cloudwatchevents.New(sess)
+
+	var userIDs string
+	var questions string
+	// Don't handle error to skip "dynamo: no item found" error
+	s, _ := setting.Get(db, query.Get("channel_id"))
+	if s != nil {
+		userIDs = strings.Join(s.UserIDs, "\n")
+		questions = strings.Join(s.Questions, "\n")
+	}
+
+	var scheduleExpression string
+	ruleName := fmt.Sprintf("%s-%s-%s", resourcePrefix, query.Get("team_id"), query.Get("channel_id"))
+	describeRuleInput := &cloudwatchevents.DescribeRuleInput{
+		Name: aws.String(ruleName),
+	}
+	// Don't handle error to skip if you haven't set rule yet
+	resp, _ := cwe.DescribeRule(describeRuleInput)
+	if resp.ScheduleExpression != nil {
+		scheduleExpression = *resp.ScheduleExpression
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	cl := slack.New(botSlackToken)
 
 	dialog := slack.Dialog{
-		CallbackId:     "setting",
-		Title:          "Setting",
-		NotifyOnCancel: true,
+		CallbackId: "setting",
+		Title:      "Setting",
 		Elements: []slack.DialogElement{
 			slack.DialogTextElement{
 				Type:  "textarea",
 				Label: "Members",
 				Name:  "user_ids",
+				Value: userIDs,
 				Placeholder: `
 W012A3CDE
 W034B4FGH`,
@@ -43,6 +75,7 @@ W034B4FGH`,
 				Type:  "textarea",
 				Label: "Questions",
 				Name:  "questions",
+				Value: questions,
 				Placeholder: `
 What did you do yesterday?
 What will you do today?
@@ -61,6 +94,7 @@ Anything blocking your progress?`,
 				Type:        "text",
 				Label:       "Execution schedule",
 				Name:        "schedule_expression",
+				Value:       scheduleExpression,
 				Placeholder: "cron(0 1 ? * MON-FRI *)",
 				Hint:        "https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html",
 			},

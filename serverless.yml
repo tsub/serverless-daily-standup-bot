@@ -16,6 +16,7 @@ provider:
       - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.resourcePrefix}-settings
   - Effect: Allow
     Action:
+      - events:DescribeRule
       - events:PutRule
       - events:PutTargets
     Resource:
@@ -68,7 +69,9 @@ functions:
           path: slash
           method: post
     environment:
+      SETTINGS_TABLE: ${self:custom.resourcePrefix}-settings
       SLACK_BOT_TOKEN: ${env:SLACK_BOT_TOKEN}
+      RESOURCE_PREFIX: ${self:custom.resourcePrefix}
   interactive:
     handler: bin/interactive
     events:
