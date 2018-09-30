@@ -23,6 +23,11 @@ func Handler(ctx context.Context, e events.DynamoDBEvent) error {
 	cl := slack.New(slackToken)
 
 	for _, record := range e.Records {
+		if record.Change.NewImage == nil {
+			// Skip if item deleted
+			continue
+		}
+
 		questions := record.Change.NewImage["questions"].List()
 		answers := record.Change.NewImage["answers"].List()
 		userID := record.Change.Keys["user_id"].String()
