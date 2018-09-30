@@ -8,6 +8,7 @@ build:
 .PHONY: clean
 clean:
 	rm -rf ./bin
+	rm -rf ./.serverless
 
 .PHONY: deploy
 deploy: clean build
