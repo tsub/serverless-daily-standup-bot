@@ -1,9 +1,14 @@
 UNAME = ${shell uname}
 
+.PHONY: build
 build:
 	env GOOS=linux go build -ldflags="-s -w" -o bin/webhook handlers/webhook/main.go
 	env GOOS=linux go build -ldflags="-s -w" -o bin/start handlers/start/main.go
 	env GOOS=linux go build -ldflags="-s -w" -o bin/send_questions handlers/send_questions/main.go
+
+.PHONY: watch
+watch:
+	realize start
 
 .PHONY: clean
 clean:

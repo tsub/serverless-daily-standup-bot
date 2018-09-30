@@ -1,0 +1,49 @@
+settings:
+  legacy:
+    force: false
+    interval: 0s
+
+schema:
+- name: sendQuestions
+  path: ./handlers/send_questions/
+  env:
+    GOOS: linux
+  commands:
+    build:
+      status: true
+      args:
+      - -ldflags=-s
+      - -ldflags=-w
+      - -o ../../.serverless/bin/send_questions
+  watcher: &watcher
+    extensions:
+    - go
+    paths:
+    - /
+    ignore:
+      paths:
+      - .git
+      - .realize
+      - vendor
+
+- name: start
+  path: ./handlers/start/
+  commands:
+    build:
+      status: true
+      args:
+      - -ldflags=-s
+      - -ldflags=-w
+      - -o ../../.serverless/bin/start
+  watcher: *watcher
+
+- name: webhook
+  path: ./handlers/webhook/
+  commands:
+    build:
+      status: true
+      args:
+      - -ldflags=-s
+      - -ldflags=-w
+      - -o ../../.serverless/bin/webhook
+  watcher: *watcher
