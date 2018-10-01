@@ -34,3 +34,13 @@ Resources:
         ReadCapacityUnits: 1
         WriteCapacityUnits: 1
       TableName: ${self:custom.resourcePrefix}-settings
+
+  StartLambdaFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - StartLambdaFunction	
+          - Arn
+      Principal: events.amazonaws.com
