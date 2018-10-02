@@ -6,21 +6,28 @@ provider:
   name: aws
   region: ${env:AWS_REGION, 'us-east-1'}
   runtime: go1.x
+  tracing: true
   iamRoleStatements:
-  - Effect: Allow
-    Action:
-      - dynamodb:GetItem
-      - dynamodb:PutItem
-    Resource:
-      - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.resourcePrefix}-standups
-      - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.resourcePrefix}-settings
-  - Effect: Allow
-    Action:
-      - events:DescribeRule
-      - events:PutRule
-      - events:PutTargets
-    Resource:
-      - '*'
+    - Effect: "Allow" # xray permissions (required) 
+      Action:
+        - "xray:PutTraceSegments"
+        - "xray:PutTelemetryRecords"
+      Resource:
+        - "*"
+    - Effect: Allow
+      Action:
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+      Resource:
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.resourcePrefix}-standups
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.resourcePrefix}-settings
+    - Effect: Allow
+      Action:
+        - events:DescribeRule
+        - events:PutRule
+        - events:PutTargets
+      Resource:
+        - '*'
 
 
 custom:
@@ -93,4 +100,5 @@ functions:
 resources: ${file(resources.yml)}
 
 plugins:
+  - serverless-plugin-tracing
   - serverless-sam
