@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/lestrrat-go/slack/objects"
 	"github.com/tsub/slack"
 )
@@ -16,6 +17,8 @@ var botSlackToken = os.Getenv("SLACK_BOT_TOKEN")
 
 // Handler is our lambda handler invoked by the `lambda.Start` function call
 func Handler(ctx context.Context, e events.DynamoDBEvent) error {
+	xray.Configure(xray.Config{LogLevel: "trace"})
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 

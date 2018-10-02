@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/guregu/dynamo"
 	"github.com/tsub/daily-standup-bot/lib/setting"
 	"github.com/tsub/daily-standup-bot/lib/standup"
@@ -17,6 +18,8 @@ type input struct {
 
 // Handler is our lambda handler invoked by the `lambda.Start` function call
 func Handler(ctx context.Context, input input) error {
+	xray.Configure(xray.Config{LogLevel: "trace"})
+
 	if input.TargetChannelID == "" {
 		log.Println("There is no target_channel_id")
 		return nil

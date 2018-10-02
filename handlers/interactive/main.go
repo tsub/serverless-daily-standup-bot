@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatchevents"
+	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/guregu/dynamo"
 	"github.com/nlopes/slack"
 	"github.com/tsub/daily-standup-bot/lib/setting"
@@ -114,6 +115,8 @@ func handlePayload(payload slack.DialogCallback) (resp Response, err error) {
 
 // Handler is our lambda handler invoked by the `lambda.Start` function call
 func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Response, error) {
+	xray.Configure(xray.Config{LogLevel: "trace"})
+
 	query, err := url.ParseQuery(request.Body)
 	if err != nil {
 		return Response{StatusCode: 400}, nil

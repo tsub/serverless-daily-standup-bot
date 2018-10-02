@@ -3,7 +3,9 @@ module github.com/tsub/daily-standup-bot
 require (
 	github.com/aws/aws-lambda-go v1.6.0
 	github.com/aws/aws-sdk-go v1.15.26
+	github.com/aws/aws-xray-sdk-go v0.9.4
 	github.com/cenkalti/backoff v2.0.0+incompatible // indirect
+	github.com/cihub/seelog v0.0.0-20170130134532-f561c5e57575 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fnproject/fdk-go v0.0.0-20180522161022-1eb29530716f
 	github.com/gorilla/websocket v1.4.0 // indirect

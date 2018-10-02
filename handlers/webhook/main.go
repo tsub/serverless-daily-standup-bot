@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/guregu/dynamo"
 	"github.com/tsub/daily-standup-bot/lib/standup"
 	"github.com/tsub/slack"
@@ -47,6 +48,8 @@ var botSlackToken = os.Getenv("SLACK_BOT_TOKEN")
 
 // Handler is our lambda handler invoked by the `lambda.Start` function call
 func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (resp Response, err error) {
+	xray.Configure(xray.Config{LogLevel: "trace"})
+
 	var envelope envelope
 
 	if err := json.Unmarshal([]byte(request.Body), &envelope); err != nil {
