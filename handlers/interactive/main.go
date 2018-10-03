@@ -16,8 +16,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudwatchevents"
 	"github.com/guregu/dynamo"
 	"github.com/nlopes/slack"
-	"github.com/tsub/daily-standup-bot/lib/setting"
-	"github.com/tsub/daily-standup-bot/lib/util"
+	"github.com/tsub/serverless-daily-standup-bot/lib/setting"
+	"github.com/tsub/serverless-daily-standup-bot/lib/util"
 )
 
 // Response is of type APIGatewayProxyResponse since we're leveraging the

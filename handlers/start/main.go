@@ -7,8 +7,8 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/guregu/dynamo"
-	"github.com/tsub/daily-standup-bot/lib/setting"
-	"github.com/tsub/daily-standup-bot/lib/standup"
+	"github.com/tsub/serverless-daily-standup-bot/lib/setting"
+	"github.com/tsub/serverless-daily-standup-bot/lib/standup"
 )
 
 type input struct {

@@ -1,5 +1,5 @@
 {
-  "name": "daily-standup-bot",
+  "name": "serverless-daily-standup-bot",
   "private": true,
   "scripts": {
     "deploy": "sls deploy --verbose",
