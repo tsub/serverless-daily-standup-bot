@@ -64,6 +64,24 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 			},
 		}, nil
 	case "event_callback":
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		botcl := slack.New(botSlackToken)
+
+		authTestResp, err := botcl.Auth().Test().Do(ctx)
+		if err != nil {
+			return Response{StatusCode: 500}, err
+		}
+
+		// Skip self event
+		if envelope.Event.User == authTestResp.UserID {
+			return Response{StatusCode: 200}, nil
+		}
+
+		// for debug
+		log.Println(envelope)
+
 		db := dynamo.New(session.New())
 
 		s, err := standup.Get(db, envelope.Event.User)
@@ -80,17 +98,12 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 				return Response{StatusCode: 400}, err
 			}
 
-			ctx, cancel := context.WithCancel(context.Background())
-			defer cancel()
-
-			botcl := slack.New(botSlackToken)
-
-			resp, err := botcl.Chat().PostMessage(envelope.Event.User).Text("Stand-up canceled.").AsUser(true).Do(ctx)
+			postMessageResp, err := botcl.Chat().PostMessage(envelope.Event.User).Text("Stand-up canceled.").AsUser(true).Do(ctx)
 			if err != nil {
 				return Response{StatusCode: 500}, err
 			}
 
-			log.Println(resp)
+			log.Println(postMessageResp)
 
 			return Response{StatusCode: 200}, nil
 		}
