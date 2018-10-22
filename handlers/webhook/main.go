@@ -46,7 +46,7 @@ type event struct {
 var botSlackToken = os.Getenv("SLACK_BOT_TOKEN")
 
 // Handler is our lambda handler invoked by the `lambda.Start` function call
-func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (resp Response, err error) {
+func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Response, error) {
 	var envelope envelope
 
 	if err := json.Unmarshal([]byte(request.Body), &envelope); err != nil {
@@ -55,14 +55,14 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (resp R
 
 	switch envelope.Type {
 	case "url_verification":
-		resp = Response{
+		return Response{
 			StatusCode:      200,
 			IsBase64Encoded: false,
 			Body:            envelope.Challenge,
 			Headers: map[string]string{
 				"Content-Type": "text/plain",
 			},
-		}
+		}, nil
 	case "event_callback":
 		db := dynamo.New(session.New())
 
@@ -99,16 +99,10 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (resp R
 			return Response{StatusCode: 400}, err
 		}
 
-		resp = Response{
-			StatusCode: 200,
-		}
+		return Response{StatusCode: 200}, nil
 	default:
-		resp = Response{
-			StatusCode: 200,
-		}
+		return Response{StatusCode: 200}, nil
 	}
-
-	return resp, nil
 }
 
 func main() {
