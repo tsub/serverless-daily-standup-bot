@@ -43,6 +43,7 @@ type event struct {
 	ChannelType     string `json:"channel_type"`
 }
 
+var slackToken = os.Getenv("SLACK_TOKEN")
 var botSlackToken = os.Getenv("SLACK_BOT_TOKEN")
 
 // Handler is our lambda handler invoked by the `lambda.Start` function call
@@ -82,9 +83,16 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 		// for debug
 		log.Println(envelope)
 
+		cl := slack.New(slackToken)
+
+		usersInfoResp, err := cl.Users().Info(envelope.Event.User).Do(ctx)
+		if err != nil {
+			return Response{StatusCode: 500}, err
+		}
+
 		db := dynamo.New(session.New())
 
-		s, err := standup.Get(db, envelope.Event.User)
+		s, err := standup.Get(db, usersInfoResp.TZ, envelope.Event.User)
 		if err != nil {
 			return Response{StatusCode: 404}, err
 		}

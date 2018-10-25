@@ -42,12 +42,14 @@ functions:
           method: post
     environment:
       STANDUPS_TABLE: ${self:custom.resourcePrefix}-standups
+      SLACK_TOKEN: ${env:SLACK_TOKEN}
       SLACK_BOT_TOKEN: ${env:SLACK_BOT_TOKEN}
   start:
     handler: bin/start
     environment:
       STANDUPS_TABLE: ${self:custom.resourcePrefix}-standups
       SETTINGS_TABLE: ${self:custom.resourcePrefix}-settings
+      SLACK_TOKEN: ${env:SLACK_TOKEN}
   send-questions:
     handler: bin/send_questions
     events:

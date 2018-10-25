@@ -3,10 +3,12 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/guregu/dynamo"
+	"github.com/nlopes/slack"
 	"github.com/tsub/serverless-daily-standup-bot/lib/setting"
 	"github.com/tsub/serverless-daily-standup-bot/lib/standup"
 )
@@ -14,6 +16,8 @@ import (
 type input struct {
 	TargetChannelID string `json:"target_channel_id"`
 }
+
+var slackToken = os.Getenv("SLACK_TOKEN")
 
 // Handler is our lambda handler invoked by the `lambda.Start` function call
 func Handler(ctx context.Context, input input) error {
@@ -29,8 +33,18 @@ func Handler(ctx context.Context, input input) error {
 		return err
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	cl := slack.New(slackToken)
+
 	for _, userID := range s.UserIDs {
-		_, err := standup.Get(db, userID)
+		resp, err := cl.GetUserInfoContext(ctx, userID)
+		if err != nil {
+			return err
+		}
+
+		_, err = standup.Get(db, resp.TZ, userID)
 		if err != nil {
 			// To skip "dynamo: no item found" error
 			continue
