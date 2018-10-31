@@ -6,3 +6,6 @@ bin
 
 node_modules
 template.yaml
+
+# Allow `$ go mod vendor`
+/vendor
