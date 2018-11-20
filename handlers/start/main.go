@@ -44,7 +44,7 @@ func Handler(ctx context.Context, input input) error {
 			return err
 		}
 
-		_, err = standup.Get(db, resp.TZ, userID)
+		_, err = standup.Get(db, resp.TZ, userID, false)
 		if err != nil {
 			// To skip "dynamo: no item found" error
 			continue

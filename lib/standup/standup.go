@@ -44,7 +44,7 @@ func (s *Standup) Cancel(db *dynamo.DB) error {
 	return nil
 }
 
-func Get(db *dynamo.DB, tz string, userID string) (*Standup, error) {
+func Get(db *dynamo.DB, tz string, userID string, consistent bool) (*Standup, error) {
 	locate, err := time.LoadLocation(tz)
 	if err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ func Get(db *dynamo.DB, tz string, userID string) (*Standup, error) {
 	today := time.Now().In(locate).Format("2006-01-02")
 
 	var s Standup
-	if err = table.Get("user_id", userID).Range("date", dynamo.Equal, today).One(&s); err != nil {
+	if err = table.Get("user_id", userID).Range("date", dynamo.Equal, today).Consistent(consistent).One(&s); err != nil {
 		return nil, err
 	}
 

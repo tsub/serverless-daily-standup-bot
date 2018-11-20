@@ -92,7 +92,7 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 
 		db := dynamo.New(session.New())
 
-		s, err := standup.Get(db, usersInfoResp.TZ, envelope.Event.User)
+		s, err := standup.Get(db, usersInfoResp.TZ, envelope.Event.User, true)
 		if err != nil {
 			return Response{StatusCode: 404}, err
 		}
