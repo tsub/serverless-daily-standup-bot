@@ -46,6 +46,8 @@ func Handler(ctx context.Context, e events.DynamoDBEvent) error {
 		}
 
 		if len(answers) == len(questions) {
+			log.Printf("finished user: %s", userID)
+
 			profile, err := cl.UsersProfile().Get().User(userID).Do(ctx)
 			if err != nil {
 				return err
