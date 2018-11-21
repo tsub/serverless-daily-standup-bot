@@ -63,7 +63,7 @@ func Handler(ctx context.Context, e events.DynamoDBEvent) error {
 			}
 
 			if len(fields) == 0 {
-				return nil
+				continue
 			}
 
 			attachment := &objects.Attachment{
