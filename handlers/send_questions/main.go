@@ -41,6 +41,8 @@ func Handler(ctx context.Context, e events.DynamoDBEvent) error {
 			}
 
 			log.Println(resp)
+
+			continue
 		}
 
 		if len(answers) == len(questions) {
