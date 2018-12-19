@@ -55,7 +55,12 @@ func Handler(ctx context.Context, input input) error {
 	}
 
 	for _, userID := range s.UserIDs {
-		if err := standup.Initial(db, userID, s.Questions, s.TargetChannelID); err != nil {
+		resp, err := cl.GetUserInfoContext(ctx, userID)
+		if err != nil {
+			return err
+		}
+
+		if err := standup.Initial(db, resp.TZ, userID, s.Questions, s.TargetChannelID); err != nil {
 			return err
 		}
 	}

@@ -61,12 +61,18 @@ func Get(db *dynamo.DB, tz string, userID string, consistent bool) (*Standup, er
 	return &s, nil
 }
 
-func Initial(db *dynamo.DB, userID string, questions []string, targetChannelID string) error {
+func Initial(db *dynamo.DB, tz string, userID string, questions []string, targetChannelID string) error {
+	locate, err := time.LoadLocation(tz)
+	if err != nil {
+		return err
+	}
+
 	table := db.Table(standupsTable)
+	today := time.Now().In(locate).Format("2006-01-02")
 
 	s := Standup{
 		UserID:          userID,
-		Date:            time.Now().Format("2006-01-02"),
+		Date:            today,
 		Questions:       questions,
 		Answers:         []string{},
 		TargetChannelID: targetChannelID,
