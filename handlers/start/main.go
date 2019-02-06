@@ -38,6 +38,7 @@ func Handler(ctx context.Context, input input) error {
 
 	cl := slack.New(slackToken)
 
+	var initialRequireUserIDs []string
 	for _, userID := range s.UserIDs {
 		resp, err := cl.GetUserInfoContext(ctx, userID)
 		if err != nil {
@@ -47,14 +48,16 @@ func Handler(ctx context.Context, input input) error {
 		_, err = standup.Get(db, resp.TZ, userID, false)
 		if err != nil {
 			// To skip "dynamo: no item found" error
-			continue
+			initialRequireUserIDs = append(initialRequireUserIDs, userID)
 		}
+	}
 
+	if len(initialRequireUserIDs) == 0 {
 		log.Println("Skip since it has already been executed today.")
 		return nil
 	}
 
-	for _, userID := range s.UserIDs {
+	for _, userID := range initialRequireUserIDs {
 		resp, err := cl.GetUserInfoContext(ctx, userID)
 		if err != nil {
 			return err
