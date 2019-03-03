@@ -7,31 +7,30 @@ provider:
   region: ${env:AWS_REGION, 'us-east-1'}
   runtime: go1.x
   iamRoleStatements:
-  - Effect: Allow
-    Action:
-      - dynamodb:GetItem
-      - dynamodb:PutItem
-    Resource:
-      - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.resourcePrefix}-standups
-      - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.resourcePrefix}-settings
-  - Effect: Allow
-    Action:
-      - events:DescribeRule
-      - events:PutRule
-      - events:PutTargets
-    Resource:
-      - '*'
-
+    - Effect: Allow
+      Action:
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+      Resource:
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.resourcePrefix}-standups
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.resourcePrefix}-settings
+    - Effect: Allow
+      Action:
+        - events:DescribeRule
+        - events:PutRule
+        - events:PutTargets
+      Resource:
+        - "*"
 
 custom:
   currentStage: ${opt:stage, self:provider.stage}
   resourcePrefix: ${self:service}-${self:custom.currentStage}
 
 package:
- exclude:
-   - ./**
- include:
-   - ./bin/**
+  exclude:
+    - ./**
+  include:
+    - ./bin/**
 
 functions:
   webhook:
@@ -86,11 +85,10 @@ functions:
       RESOURCE_PREFIX: ${self:custom.resourcePrefix}
       START_FUNCTION_ARN:
         Fn::Join:
-          - ':'
-          -
-            - 'arn:aws:lambda:${self:provider.region}'
-            - Ref: 'AWS::AccountId'
-            - 'function:${self:custom.resourcePrefix}-start'
+          - ":"
+          - - "arn:aws:lambda:${self:provider.region}"
+            - Ref: "AWS::AccountId"
+            - "function:${self:custom.resourcePrefix}-start"
 
 resources: ${file(resources.yml)}
 

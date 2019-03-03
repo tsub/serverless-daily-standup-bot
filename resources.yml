@@ -41,6 +41,6 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName:
         Fn::GetAtt:
-          - StartLambdaFunction	
+          - StartLambdaFunction
           - Arn
       Principal: events.amazonaws.com
