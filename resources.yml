@@ -13,9 +13,7 @@ Resources:
           AttributeType: S
         - AttributeName: date
           AttributeType: S
-      ProvisionedThroughput:
-        ReadCapacityUnits: 1
-        WriteCapacityUnits: 1
+      BillingMode: PAY_PER_REQUEST
       TableName: ${self:custom.resourcePrefix}-standups
       StreamSpecification:
         StreamViewType: NEW_IMAGE
@@ -30,9 +28,7 @@ Resources:
       AttributeDefinitions:
         - AttributeName: target_channel_id
           AttributeType: S
-      ProvisionedThroughput:
-        ReadCapacityUnits: 1
-        WriteCapacityUnits: 1
+      BillingMode: PAY_PER_REQUEST
       TableName: ${self:custom.resourcePrefix}-settings
 
   StartLambdaFunctionPermission:
