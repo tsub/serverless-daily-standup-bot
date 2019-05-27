@@ -98,6 +98,13 @@ Anything blocking your progress?`,
 				Placeholder: "cron(0 1 ? * MON-FRI *)",
 				Hint:        "https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html",
 			},
+			slack.DialogTextElement{
+				Type: "textarea",
+				Label: "Start messages",
+				Name: "start_messages",
+				Value: s.StartMessages,
+				Placeholder: "Hello!",
+			},
 		},
 	}
 	triggerID := query.Get("trigger_id")

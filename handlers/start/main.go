@@ -18,6 +18,7 @@ type input struct {
 }
 
 var slackToken = os.Getenv("SLACK_TOKEN")
+var botSlackToken = os.Getenv("SLACK_BOT_TOKEN")
 
 // Handler is our lambda handler invoked by the `lambda.Start` function call
 func Handler(ctx context.Context, input input) error {
@@ -36,6 +37,7 @@ func Handler(ctx context.Context, input input) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	botcl := slack.New(botSlackToken)
 	cl := slack.New(slackToken)
 
 	var initialRequireUserIDs []string
@@ -59,6 +61,11 @@ func Handler(ctx context.Context, input input) error {
 
 	for _, userID := range initialRequireUserIDs {
 		resp, err := cl.GetUserInfoContext(ctx, userID)
+		if err != nil {
+			return err
+		}
+
+		resp, err := botcl.Chat().PostMessage(userID).AsUser(true).Text(text).Do(ctx)
 		if err != nil {
 			return err
 		}
