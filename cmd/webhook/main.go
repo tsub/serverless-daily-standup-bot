@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/guregu/dynamo"
-	"github.com/tsub/serverless-daily-standup-bot/lib/standup"
+	"github.com/tsub/serverless-daily-standup-bot/internal/standup"
 	"github.com/tsub/slack"
 )
 

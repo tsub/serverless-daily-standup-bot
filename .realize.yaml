@@ -5,7 +5,7 @@ settings:
 
 schema:
 - name: sendQuestions
-  path: ./handlers/send_questions/
+  path: ./cmd/send_questions/
   env:
     GOOS: linux
   commands:
@@ -27,7 +27,7 @@ schema:
       - vendor
 
 - name: start
-  path: ./handlers/start/
+  path: ./cmd/start/
   commands:
     build:
       status: true
@@ -38,7 +38,7 @@ schema:
   watcher: *watcher
 
 - name: webhook
-  path: ./handlers/webhook/
+  path: ./cmd/webhook/
   commands:
     build:
       status: true
@@ -49,7 +49,7 @@ schema:
   watcher: *watcher
 
 - name: slash
-  path: ./handlers/slash/
+  path: ./cmd/slash/
   commands:
     build:
       status: true
@@ -60,7 +60,7 @@ schema:
   watcher: *watcher
 
 - name: interactive
-  path: ./handlers/interactive/
+  path: ./cmd/interactive/
   commands:
     build:
       status: true
