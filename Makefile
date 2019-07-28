@@ -8,6 +8,10 @@ build:
 	env GOOS=linux go build -ldflags="-s -w" -o bin/slash          cmd/slash/main.go
 	env GOOS=linux go build -ldflags="-s -w" -o bin/interactive    cmd/interactive/main.go
 
+.PHONY: test
+test:
+	go test ./...
+
 .PHONY: watch
 watch:
 	realize start
