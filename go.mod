@@ -1,7 +1,7 @@
 module github.com/tsub/serverless-daily-standup-bot
 
 require (
-	github.com/aws/aws-lambda-go v1.6.0
+	github.com/aws/aws-lambda-go v1.12.0
 	github.com/aws/aws-sdk-go v1.15.26
 	github.com/cenkalti/backoff v2.0.0+incompatible // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
