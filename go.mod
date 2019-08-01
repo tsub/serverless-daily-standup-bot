@@ -7,7 +7,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fnproject/fdk-go v0.0.0-20180522161022-1eb29530716f
 	github.com/gorilla/websocket v1.4.0 // indirect
-	github.com/guregu/dynamo v1.0.0
+	github.com/guregu/dynamo v1.3.1
 	github.com/lestrrat-go/pdebug v0.0.0-20180220043849-39f9a71bcabe // indirect
 	github.com/lestrrat-go/slack v0.0.0-20180726073730-18d3cce844c0
 	github.com/nlopes/slack v0.5.0
