@@ -28,6 +28,8 @@ github.com/lestrrat-go/slack v0.0.0-20180726073730-18d3cce844c0 h1:TTSRmu0G64dJU
 github.com/lestrrat-go/slack v0.0.0-20180726073730-18d3cce844c0/go.mod h1:rZAJYlLtmM0bn20eDQqMdZHObR+hCyfgyJsSWJsgi+U=
 github.com/nlopes/slack v0.3.0 h1:jCxvaS8wC4Bb1jnbqZMjCDkOOgy4spvQWcrw/TF0L0E=
 github.com/nlopes/slack v0.3.0/go.mod h1:jVI4BBK3lSktibKahxBF74txcK2vyvkza1z/+rRnVAM=
+github.com/nlopes/slack v0.5.0 h1:NbIae8Kd0NpqaEI3iUrsuS0KbcEDhzhc939jLW5fNm0=
+github.com/nlopes/slack v0.5.0/go.mod h1:jVI4BBK3lSktibKahxBF74txcK2vyvkza1z/+rRnVAM=
 github.com/pkg/errors v0.8.0 h1:WdK/asTD0HN+q6hsWO3/vpuAkAr+tw6aNJNDFFf0+qw=
 github.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=

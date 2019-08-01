@@ -87,7 +87,12 @@ func initialSettings(payload slack.DialogCallback) (Response, error) {
 	cl := slack.New(botSlackToken)
 
 	params := slack.NewPostMessageParameters()
-	_, _, err = cl.PostMessageContext(ctx, replyChannelID, "Setting finished", params)
+	_, _, err = cl.PostMessageContext(
+		ctx,
+		replyChannelID,
+		slack.MsgOptionText("Setting finished", false),
+		slack.MsgOptionPostMessageParameters(params),
+	)
 	if err != nil {
 		return Response{StatusCode: 500}, err
 	}

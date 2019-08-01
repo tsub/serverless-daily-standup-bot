@@ -10,7 +10,7 @@ require (
 	github.com/guregu/dynamo v1.0.0
 	github.com/lestrrat-go/pdebug v0.0.0-20180220043849-39f9a71bcabe // indirect
 	github.com/lestrrat-go/slack v0.0.0-20180726073730-18d3cce844c0
-	github.com/nlopes/slack v0.3.0
+	github.com/nlopes/slack v0.5.0
 	github.com/pkg/errors v0.8.0 // indirect
 	github.com/tsub/slack v0.0.0-20180902133210-f7a41612f75f
 	golang.org/x/net v0.0.0-20180826012351-8a410e7b638d // indirect

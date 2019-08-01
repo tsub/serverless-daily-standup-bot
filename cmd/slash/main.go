@@ -58,45 +58,52 @@ func startSetting(query url.Values) (Response, error) {
 	cl := slack.New(botSlackToken)
 
 	dialog := slack.Dialog{
-		CallbackId: "setting",
+		CallbackID: "setting",
 		Title:      "Setting",
 		Elements: []slack.DialogElement{
-			slack.DialogTextElement{
-				Type:  "textarea",
-				Label: "Members",
-				Name:  "user_ids",
+			slack.TextInputElement{
 				Value: userIDs,
-				Placeholder: `
+				Hint:  "Please type user ID (not username)",
+				DialogInput: slack.DialogInput{
+					Type:  "textarea",
+					Label: "Members",
+					Name:  "user_ids",
+					Placeholder: `
 W012A3CDE
 W034B4FGH`,
-				Hint: "Please type user ID (not username)",
+				},
 			},
-			slack.DialogTextElement{
-				Type:  "textarea",
-				Label: "Questions",
-				Name:  "questions",
+			slack.TextInputElement{
 				Value: questions,
-				Placeholder: `
+				Hint:  "Please write multiple questions in multiple lines",
+				DialogInput: slack.DialogInput{
+					Type:  "textarea",
+					Label: "Questions",
+					Name:  "questions",
+					Placeholder: `
 What did you do yesterday?
 What will you do today?
 Anything blocking your progress?`,
-				Hint: "Please write multiple questions in multiple lines",
+				}},
+			slack.DialogInputSelect{
+				Value:      query.Get("channel_id"),
+				DataSource: "channels",
+				DialogInput: slack.DialogInput{
+					Type:        "select",
+					Label:       "Target channel",
+					Name:        "target_channel_id",
+					Placeholder: "Choose a channel",
+				},
 			},
-			slack.DialogSelectElement{
-				Type:        "select",
-				Label:       "Target channel",
-				Name:        "target_channel_id",
-				DataSource:  "channels",
-				Value:       query.Get("channel_id"),
-				Placeholder: "Choose a channel",
-			},
-			slack.DialogTextElement{
-				Type:        "text",
-				Label:       "Execution schedule",
-				Name:        "schedule_expression",
-				Value:       scheduleExpression,
-				Placeholder: "cron(0 1 ? * MON-FRI *)",
-				Hint:        "https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html",
+			slack.TextInputElement{
+				Value: scheduleExpression,
+				Hint:  "https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html",
+				DialogInput: slack.DialogInput{
+					Type:        "text",
+					Label:       "Execution schedule",
+					Name:        "schedule_expression",
+					Placeholder: "cron(0 1 ? * MON-FRI *)",
+				},
 			},
 		},
 	}
