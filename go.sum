@@ -1,7 +1,10 @@
+github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/aws/aws-lambda-go v1.6.0 h1:T+u/g79zPKw1oJM7xYhvpq7i4Sjc0iVsXZUaqRVVSOg=
 github.com/aws/aws-lambda-go v1.6.0/go.mod h1:zUsUQhAUjYzR8AuduJPCfhBuKWUaDbQiPOG+ouzmE1A=
 github.com/aws/aws-lambda-go v1.12.0 h1:CgKAMdFIWExd4U6c9DUE+ax8N0fsmkYirqcfmReRCeo=
 github.com/aws/aws-lambda-go v1.12.0/go.mod h1:050MeYvnG0NozqUw+ljHH9x0SwxeBnbxHVhcjn9nJFA=
+github.com/aws/aws-lambda-go v1.12.1 h1:rMToYOcPFYDixQ7VNNPg78LmiqPgWD5f8zdLL+EsDAk=
+github.com/aws/aws-lambda-go v1.12.1/go.mod h1:z4ywteZ5WwbIEzG0tXizIAUlUwkTNNknX4upd5Z5XJM=
 github.com/aws/aws-sdk-go v1.15.26 h1:p9fZ5yY1JnB3T0iLQQsLrFY70Pyfft6WcNANHtGOyYc=
 github.com/aws/aws-sdk-go v1.15.26/go.mod h1:mFuSZ37Z9YOHbQEwBWztmVzqXrEkub65tZoCYDt7FT0=
 github.com/aws/aws-sdk-go v1.15.45 h1:AZQmbZllwfzmoGWnCufXcPEObmdOh4Jb9EiIweh/4Sg=
@@ -51,6 +54,7 @@ github.com/stretchr/testify v1.2.2 h1:bSDNvY7ZPG5RlJ8otE/7V6gMiyenm9RtJ7IUVIAoJ1
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/tsub/slack v0.0.0-20180902133210-f7a41612f75f h1:MWqfUrN/XFXt/RFZz0Fk1B4BJpB32vtuydFBwvVYA9E=
 github.com/tsub/slack v0.0.0-20180902133210-f7a41612f75f/go.mod h1:XFp04sIYJJKcFGjejku4Tuwd8RjfI+552gplVAGbweg=
+github.com/urfave/cli v1.21.0/go.mod h1:lxDj6qX9Q6lWQxIrbrT0nwecwUtRnhVZAJjJZrVUZZQ=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/net v0.0.0-20180724234803-3673e40ba225/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
 golang.org/x/net v0.0.0-20180826012351-8a410e7b638d h1:g9qWBGx4puODJTMVyoPrpoxPFgVGd+z1DZwjfRu4d0I=
@@ -63,4 +67,6 @@ golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5h
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 google.golang.org/appengine v1.2.0 h1:S0iUepdCWODXRvtE+gcRDd15L+k+k1AiHlMiMjefH24=
 google.golang.org/appengine v1.2.0/go.mod h1:xpcJRLb0r/rnEns0DIKYYv+WjYCduHsrkT7/EB5XEv4=
+gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/urfave/cli.v1 v1.20.0/go.mod h1:vuBzUtMdQeixQj8LVd+/98pzhxNGQoyuPBlsXHOQNO0=
+gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
