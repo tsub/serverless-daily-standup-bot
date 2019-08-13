@@ -1,7 +1,7 @@
 module github.com/tsub/serverless-daily-standup-bot
 
 require (
-	github.com/aws/aws-lambda-go v1.12.0
+	github.com/aws/aws-lambda-go v1.12.1
 	github.com/aws/aws-sdk-go v1.21.10
 	github.com/fnproject/fdk-go v0.0.0-20180522161022-1eb29530716f
 	github.com/gorilla/websocket v1.4.0 // indirect
