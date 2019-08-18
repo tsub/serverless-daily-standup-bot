@@ -7,8 +7,10 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/lestrrat-go/slack/objects"
-	"github.com/tsub/slack"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/guregu/dynamo"
+	"github.com/nlopes/slack"
+	"github.com/tsub/serverless-daily-standup-bot/internal/standup"
 )
 
 var slackToken = os.Getenv("SLACK_TOKEN")
@@ -35,12 +37,19 @@ func Handler(ctx context.Context, e events.DynamoDBEvent) error {
 		if len(questions)-len(answers) > 0 {
 			q := questions[len(answers)].String()
 
-			resp, err := botcl.Chat().PostMessage(userID).AsUser(true).Text(q).Do(ctx)
+			params := slack.NewPostMessageParameters()
+			resp, _, err := botcl.PostMessageContext(
+				ctx,
+				userID,
+				slack.MsgOptionText(q, false),
+				slack.MsgOptionAsUser(true),
+				slack.MsgOptionPostMessageParameters(params),
+			)
 			if err != nil {
 				return err
 			}
 
-			log.Println(resp)
+			log.Printf("postMessageResp: %s", resp)
 
 			continue
 		}
@@ -48,41 +57,74 @@ func Handler(ctx context.Context, e events.DynamoDBEvent) error {
 		if len(answers) == len(questions) {
 			log.Printf("finished user: %s", userID)
 
-			profile, err := cl.UsersProfile().Get().User(userID).Do(ctx)
+			profile, err := cl.GetUserProfileContext(ctx, userID, false)
 			if err != nil {
 				return err
 			}
 
-			var fields objects.AttachmentFieldList
+			var fields []slack.AttachmentField
 			for i := range questions {
-				if answers[i].String() == "none" {
+				if answers[i].Map()["text"].String() == "none" {
 					continue
 				}
 
-				fields.Append(&objects.AttachmentField{
+				fields = append(fields, (slack.AttachmentField{
 					Title: questions[i].String(),
-					Value: answers[i].String(),
+					Value: answers[i].Map()["text"].String(),
 					Short: false,
-				})
+				}))
 			}
 
 			if len(fields) == 0 {
 				continue
 			}
 
-			attachment := &objects.Attachment{
+			attachment := slack.Attachment{
 				AuthorName: profile.RealName,
 				AuthorIcon: profile.Image32,
 				Fields:     fields,
 			}
 
 			targetChannelID := record.Change.NewImage["target_channel_id"].String()
-			resp, err := botcl.Chat().PostMessage(targetChannelID).AsUser(true).Attachment(attachment).Do(ctx)
+
+			db := dynamo.New(session.New())
+
+			userInfoResp, err := cl.GetUserInfoContext(ctx, userID)
 			if err != nil {
 				return err
 			}
 
-			log.Println(resp)
+			s, err := standup.Get(db, userInfoResp.TZ, userID, true)
+			if err != nil {
+				return err
+			}
+
+			if s.FinishedAt == "" {
+				_, postMessageTimestamp, err := botcl.PostMessageContext(
+					ctx,
+					targetChannelID,
+					slack.MsgOptionAttachments(attachment),
+					slack.MsgOptionAsUser(true),
+				)
+				if err != nil {
+					return err
+				}
+
+				if err = s.Finish(db, postMessageTimestamp); err != nil {
+					return err
+				}
+			} else {
+				_, _, _, err := botcl.UpdateMessageContext(
+					ctx,
+					targetChannelID,
+					s.FinishedAt,
+					slack.MsgOptionAttachments(attachment),
+					slack.MsgOptionAsUser(true),
+				)
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 

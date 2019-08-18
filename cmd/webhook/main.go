@@ -116,7 +116,11 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 			return Response{StatusCode: 200}, nil
 		}
 
-		if err := s.AppendAnswer(db, envelope.Event.Text); err != nil {
+		answer := standup.Answer{
+			Text:     envelope.Event.Text,
+			PostedAt: envelope.Event.Timestamp,
+		}
+		if err := s.AppendAnswer(db, answer); err != nil {
 			return Response{StatusCode: 400}, err
 		}
 
