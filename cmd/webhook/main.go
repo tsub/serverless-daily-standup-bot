@@ -54,6 +54,12 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 		return Response{StatusCode: 400}, err
 	}
 
+	jsonEnvelope, err := json.Marshal(envelope)
+	if err != nil {
+		return Response{StatusCode: 500}, err
+	}
+	log.Printf("envelope: %s", jsonEnvelope)
+
 	switch envelope.Type {
 	case "url_verification":
 		return Response{
@@ -79,9 +85,6 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 		if envelope.Event.User == authTestResp.UserID {
 			return Response{StatusCode: 200}, nil
 		}
-
-		// for debug
-		log.Println(envelope)
 
 		cl := slack.New(slackToken)
 
