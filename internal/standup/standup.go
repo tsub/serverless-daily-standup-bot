@@ -1,6 +1,7 @@
 package standup
 
 import (
+	"errors"
 	"os"
 	"time"
 
@@ -32,6 +33,24 @@ func (s *Standup) AppendAnswer(db *dynamo.DB, answer Answer) error {
 	}
 
 	return nil
+}
+
+func (s *Standup) UpdateAnswer(db *dynamo.DB, updateAnswer Answer) error {
+	table := db.Table(standupsTable)
+
+	for i, answer := range s.Answers {
+		if answer.PostedAt == updateAnswer.PostedAt {
+			s.Answers[i] = updateAnswer
+
+			if err := table.Put(s).Run(); err != nil {
+				return err
+			}
+
+			return nil
+		}
+	}
+
+	return errors.New("Target answer is not found.")
 }
 
 func (s *Standup) Finish(db *dynamo.DB, finishedAt string) error {
