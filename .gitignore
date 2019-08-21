@@ -9,3 +9,9 @@ template.yaml
 
 # Allow `$ go mod vendor`
 /vendor
+
+# For direnv
+.env
+.env.dev
+.env.prod
+.envrc
