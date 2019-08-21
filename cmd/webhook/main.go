@@ -21,26 +21,47 @@ import (
 type Response events.APIGatewayProxyResponse
 
 type envelope struct {
-	Type        string   `json:"type"`
 	APIAppID    string   `json:"api_app_id"`
-	Token       string   `json:"token"`
+	AuthedUsers []string `json:"authed_users"`
 	Challenge   string   `json:"challenge"`
-	TeamID      string   `json:"team_id"`
 	Event       event    `json:"event"`
 	EventID     string   `json:"event_id"`
 	EventTime   int      `json:"event_time"`
-	AuthedUsers []string `json:"authed_users"`
+	TeamID      string   `json:"team_id"`
+	Token       string   `json:"token"`
+	Type        string   `json:"type"`
 }
 
 type event struct {
+	Channel         string  `json:"channel"`
+	ChannelType     string  `json:"channel_type"`
+	ClientMessageID string  `json:"client_msg_id"`
+	EventTimestamp  string  `json:"event_ts"`
+	Hidden          bool    `json:"hidden"`
+	Message         message `json:"message"`
+	PreviousMessage message `json:"previous_message"`
+	Subtype         string  `json:"subtype"`
+	Text            string  `json:"text"`
+	Timestamp       string  `json:"ts"`
+	Type            string  `json:"type"`
+	User            string  `json:"user"`
+}
+
+type message struct {
+	ClientMessageID string `json:"client_msg_id"`
+	Edited          edited `json:"edited"`
+	SourceTeam      string `json:"source_team"`
+	Team            string `json:"team"`
+	Text            string `json:"text"`
+	Timestamp       string `json:"ts"`
 	Type            string `json:"type"`
 	User            string `json:"user"`
-	Text            string `json:"text"`
-	ClientMessageID string `json:"client_msg_id"`
-	Timestamp       string `json:"ts"`
-	Channel         string `json:"channel"`
-	EventTimestamp  string `json:"event_ts"`
-	ChannelType     string `json:"channel_type"`
+	UserTeam        string `json:"user_team"`
+}
+
+type edited struct {
+	Timestamp string `json:"ts"`
+	User      string `json:"user"`
 }
 
 var slackToken = os.Getenv("SLACK_TOKEN")
@@ -50,9 +71,17 @@ var botSlackToken = os.Getenv("SLACK_BOT_TOKEN")
 func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Response, error) {
 	var envelope envelope
 
+	log.Printf("raw request body: %s", request.Body)
+
 	if err := json.Unmarshal([]byte(request.Body), &envelope); err != nil {
 		return Response{StatusCode: 400}, err
 	}
+
+	jsonEnvelope, err := json.Marshal(envelope)
+	if err != nil {
+		return Response{StatusCode: 500}, err
+	}
+	log.Printf("envelope: %s", jsonEnvelope)
 
 	switch envelope.Type {
 	case "url_verification":
@@ -65,6 +94,10 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 			},
 		}, nil
 	case "event_callback":
+		if envelope.Event.Type != "message" {
+			return Response{StatusCode: 200}, nil
+		}
+
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
@@ -75,38 +108,58 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 			return Response{StatusCode: 500}, err
 		}
 
-		// Skip self event
-		if envelope.Event.User == authTestResp.UserID {
+		var user string
+		var answer standup.Answer
+
+		switch envelope.Event.Subtype {
+		case "message_changed":
+			user = envelope.Event.Message.User
+			answer = standup.Answer{
+				Text:     envelope.Event.Message.Text,
+				PostedAt: envelope.Event.Message.Timestamp,
+			}
+		case "": // new message
+			user = envelope.Event.User
+			answer = standup.Answer{
+				Text:     envelope.Event.Text,
+				PostedAt: envelope.Event.Timestamp,
+			}
+		default:
+			// unsupported subtype
+			// see https://api.slack.com/events/message#message_subtypes
+			log.Printf("unsupported subtype: %s", envelope.Event.Subtype)
 			return Response{StatusCode: 200}, nil
 		}
 
-		// for debug
-		log.Println(envelope)
+		// Skip self event
+		if user == authTestResp.UserID {
+			return Response{StatusCode: 200}, nil
+		}
 
 		cl := slack.New(slackToken)
 
-		usersInfoResp, err := cl.Users().Info(envelope.Event.User).Do(ctx)
+		usersInfoResp, err := cl.Users().Info(user).Do(ctx)
 		if err != nil {
 			return Response{StatusCode: 500}, err
 		}
 
 		db := dynamo.New(session.New())
 
-		s, err := standup.Get(db, usersInfoResp.TZ, envelope.Event.User, true)
+		s, err := standup.Get(db, usersInfoResp.TZ, user, true)
 		if err != nil {
 			return Response{StatusCode: 404}, err
 		}
 
-		if len(s.Answers) >= len(s.Questions) {
+		if envelope.Event.Subtype != "message_changed" && len(s.Answers) >= len(s.Questions) {
 			return Response{StatusCode: 200}, nil
 		}
 
-		if envelope.Event.Text == "cancel" {
+		if envelope.Event.Subtype != "message_changed" && answer.Text == "cancel" {
 			if err := s.Cancel(db); err != nil {
 				return Response{StatusCode: 400}, err
 			}
 
-			postMessageResp, err := botcl.Chat().PostMessage(envelope.Event.User).Text("Stand-up canceled.").AsUser(true).Do(ctx)
+			postMessageResp, err := botcl.Chat().PostMessage(user).Text("Stand-up canceled.").AsUser(true).Do(ctx)
 			if err != nil {
 				return Response{StatusCode: 500}, err
 			}
@@ -116,8 +169,14 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 			return Response{StatusCode: 200}, nil
 		}
 
-		if err := s.AppendAnswer(db, envelope.Event.Text); err != nil {
-			return Response{StatusCode: 400}, err
+		if envelope.Event.Subtype == "message_changed" {
+			if err := s.UpdateAnswer(db, answer); err != nil {
+				return Response{StatusCode: 400}, err
+			}
+		} else {
+			if err := s.AppendAnswer(db, answer); err != nil {
+				return Response{StatusCode: 400}, err
+			}
 		}
 
 		return Response{StatusCode: 200}, nil
