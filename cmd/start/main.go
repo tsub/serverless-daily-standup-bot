@@ -63,7 +63,12 @@ func Handler(ctx context.Context, input input) error {
 			return err
 		}
 
-		if err := standup.Initial(db, resp.TZ, userID, s.Questions, s.TargetChannelID); err != nil {
+		questions := make([]standup.Question, len(s.Questions))
+		for i, text := range s.Questions {
+			questions[i] = standup.Question{Text: text}
+		}
+
+		if err := standup.Initial(db, resp.TZ, userID, questions, s.TargetChannelID); err != nil {
 			return err
 		}
 	}

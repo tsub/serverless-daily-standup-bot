@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"os"
 
@@ -18,6 +19,12 @@ var botSlackToken = os.Getenv("SLACK_BOT_TOKEN")
 
 // Handler is our lambda handler invoked by the `lambda.Start` function call
 func Handler(ctx context.Context, e events.DynamoDBEvent) error {
+	jsonEvent, err := json.Marshal(e)
+	if err != nil {
+		return err
+	}
+	log.Printf("event: %s", jsonEvent)
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -33,24 +40,46 @@ func Handler(ctx context.Context, e events.DynamoDBEvent) error {
 		questions := record.Change.NewImage["questions"].List()
 		answers := record.Change.NewImage["answers"].List()
 		userID := record.Change.Keys["user_id"].String()
+		targetChannelID := record.Change.NewImage["target_channel_id"].String()
+
+		db := dynamo.New(session.New())
+
+		userInfoResp, err := cl.GetUserInfoContext(ctx, userID)
+		if err != nil {
+			return err
+		}
+
+		s, err := standup.Get(db, userInfoResp.TZ, userID, true)
+		if err != nil {
+			return err
+		}
 
 		if len(questions)-len(answers) > 0 {
 			// Send a next question if haven't answered all questions yet
-			q := questions[len(answers)].String()
+			nextQuestionIndex := len(answers)
 
-			params := slack.NewPostMessageParameters()
-			resp, _, err := botcl.PostMessageContext(
+			if _, ok := questions[nextQuestionIndex].Map()["posted_at"]; ok {
+				// Skip if already send a next question
+				continue
+			}
+
+			question := standup.Question{
+				Text: questions[nextQuestionIndex].Map()["text"].String(),
+			}
+
+			_, postMessageTimestamp, err := botcl.PostMessageContext(
 				ctx,
 				userID,
-				slack.MsgOptionText(q, false),
+				slack.MsgOptionText(question.Text, false),
 				slack.MsgOptionAsUser(true),
-				slack.MsgOptionPostMessageParameters(params),
 			)
 			if err != nil {
 				return err
 			}
 
-			log.Printf("postMessageResp: %s", resp)
+			if err = s.SentQuestion(db, nextQuestionIndex, postMessageTimestamp); err != nil {
+				return err
+			}
 
 			continue
 		}
@@ -76,13 +105,15 @@ func Handler(ctx context.Context, e events.DynamoDBEvent) error {
 			}
 
 			fields = append(fields, (slack.AttachmentField{
-				Title: questions[i].String(),
+				Title: questions[i].Map()["text"].String(),
 				Value: answers[i].Map()["text"].String(),
 				Short: false,
 			}))
 		}
 
 		if len(fields) == 0 {
+			// Skip if unintended state
+			log.Printf("unintended state in user: %s", userID)
 			continue
 		}
 
@@ -90,20 +121,6 @@ func Handler(ctx context.Context, e events.DynamoDBEvent) error {
 			AuthorName: profile.RealName,
 			AuthorIcon: profile.Image32,
 			Fields:     fields,
-		}
-
-		targetChannelID := record.Change.NewImage["target_channel_id"].String()
-
-		db := dynamo.New(session.New())
-
-		userInfoResp, err := cl.GetUserInfoContext(ctx, userID)
-		if err != nil {
-			return err
-		}
-
-		s, err := standup.Get(db, userInfoResp.TZ, userID, true)
-		if err != nil {
-			return err
 		}
 
 		if s.FinishedAt == "" {
