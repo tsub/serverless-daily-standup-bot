@@ -1,5 +1,3 @@
-'use strict';
-
 // ------------------------------------------------------
 // Type definitions in TypeScript
 import * as WebApi from 'seratch-slack-types/web-api';
