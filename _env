@@ -5,6 +5,3 @@ export SLACK_SIGNING_SECRET=xxxxxxxxx
 export SLACK_CLIENT_ID=xxxxxxxxx.xxxxxxxxx
 export SLACK_CLIENT_SECRET=xxxxxxxxx
 export SLACK_REDIRECT_URI=https://www.example.com/...
-
-# Serverless Framework
-export SERVERLESS_STAGE=dev

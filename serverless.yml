@@ -1,16 +1,3 @@
-# Welcome to Serverless!
-#
-# This file is the main config file for your service.
-# It's very minimal at this point and uses default values.
-# You can always add more config options for more control.
-# We've included some commented out config examples here.
-# Just uncomment any of them to get that config option.
-#
-# For full config options, check the docs:
-#    docs.serverless.com
-#
-# Happy Coding!
-
 plugins:
   - serverless-offline
   - serverless-webpack
@@ -20,38 +7,16 @@ service: daily-standup-bot
 provider:
   name: aws
   runtime: nodejs8.10
-  region: ap-northeast-1 # Tokyo Region
+  region: ${env:AWS_REGION, 'us-east-1'}
   environment:
-    SERVERLESS_STAGE: ${env:SERVERLESS_STAGE, 'dev'}
+    SERVERLESS_STAGE: ${self:custom.currentStage}
     SLACK_CLIENT_ID: ${env:SLACK_CLIENT_ID}
     SLACK_CLIENT_SECRET: ${env:SLACK_CLIENT_SECRET}
     SLACK_SIGNING_SECRET: ${env:SLACK_SIGNING_SECRET}
     SLACK_REDIRECT_URI: ${env:SLACK_REDIRECT_URI}
 
-# you can add statements to the Lambda function's IAM Role here
-#  iamRoleStatements:
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:ListBucket"
-#      Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:PutObject"
-#      Resource:
-#        Fn::Join:
-#          - ""
-#          - - "arn:aws:s3:::"
-#            - "Ref" : "ServerlessDeploymentBucket"
-#            - "/*"
-
-# you can add packaging information here
-#package:
-#  include:
-#    - include-me.js
-#    - include-me-dir/**
-#  exclude:
-#    - exclude-me.js
-#    - exclude-me-dir/**
+custom:
+  currentStage: ${opt:stage, self:provider.stage}
 
 functions:
   app:
