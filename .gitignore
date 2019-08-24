@@ -10,3 +10,4 @@ jspm_packages
 
 # secret variables
 .env*
+!.env.skeleton
