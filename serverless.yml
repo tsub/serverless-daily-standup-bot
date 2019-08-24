@@ -18,6 +18,7 @@ provider:
     SESSION_SECRET: ${env:SESSION_SECRET}
     SESSION_DYNAMODB_TABLE: ${self:custom.resourcePrefix}-sessions
     WORKSPACE_DYNAMODB_TABLE: ${self:custom.resourcePrefix}-workspaces
+    DYNAMODB_ENDPOINT: ${env:DYNAMODB_ENDPOINT}
 
 custom:
   currentStage: ${opt:stage, self:provider.stage}

@@ -5,13 +5,23 @@ import * as OAuth2Strategy from 'passport-oauth2';
 import * as session from 'express-session';
 import * as connectDynamoDB from 'connect-dynamodb';
 import * as AWS from 'aws-sdk';
+import {
+  workspaceDynamoDBTable,
+  sessionDynamoDBTable,
+  sessionSecret,
+  slackSigningSecret,
+  slackClientID,
+  slackClientSecret,
+  slackRedirectURI,
+  dynamoDBEndpoint,
+} from './env';
 
 const DynamoDBClient = new AWS.DynamoDB({
-  endpoint: 'http://localhost:8000', // TODO: Not used in production
+  endpoint: dynamoDBEndpoint,
 });
 
 const expressReceiver = new ExpressReceiver({
-  signingSecret: process.env.SLACK_SIGNING_SECRET
+  signingSecret: slackSigningSecret,
 });
 export const expressApp: Application = expressReceiver.app;
 
@@ -29,7 +39,7 @@ const app: App = new App({
             "team_id": { S: source.teamId },
             "user_id": { S: source.userId },
           },
-          TableName: process.env.WORKSPACE_DYNAMODB_TABLE,
+          TableName: workspaceDynamoDBTable,
         }).promise();
 
         item = getItemResult.Item;
@@ -39,7 +49,7 @@ const app: App = new App({
             ":team_id": { S: source.teamId },
           },
           KeyConditionExpression: "team_id = :team_id",
-          TableName: process.env.WORKSPACE_DYNAMODB_TABLE,
+          TableName: workspaceDynamoDBTable,
         }).promise();
 
         item = queryResult.Items[0];
@@ -75,21 +85,21 @@ app.error((error) => {
 
 const DynamoDBStore = connectDynamoDB({ session });
 const DynamoDBStoreOptions = {
-  table: process.env.SESSION_DYNAMODB_TABLE,
+  table: sessionDynamoDBTable,
   client: DynamoDBClient,
 };
 const passport = new Passport();
 
-expressApp.use(session({ store: new DynamoDBStore(DynamoDBStoreOptions), secret: process.env.SESSION_SECRET }))
+expressApp.use(session({ store: new DynamoDBStore(DynamoDBStoreOptions), secret: sessionSecret }))
 expressApp.use(passport.initialize());
 expressApp.use(passport.session());
 
 passport.use(new OAuth2Strategy({
     authorizationURL: 'https://slack.com/oauth/authorize',
     tokenURL: 'https://slack.com/api/oauth.access',
-    clientID: process.env.SLACK_CLIENT_ID,
-    clientSecret: process.env.SLACK_CLIENT_SECRET,
-    callbackURL: process.env.SLACK_REDIRECT_URI,
+    clientID: slackClientID,
+    clientSecret: slackClientSecret,
+    callbackURL: slackRedirectURI,
     scope: 'bot,chat:write:bot',
     scopeSeparator: ',',
     state: true,
@@ -106,7 +116,7 @@ passport.use(new OAuth2Strategy({
           "bot_access_token": { S: results.bot.bot_access_token },
           "bot_user_id": { S: results.bot.bot_user_id },
         },
-        TableName: process.env.WORKSPACE_DYNAMODB_TABLE,
+        TableName: workspaceDynamoDBTable,
       }).promise();
 
       return cb(null, {});
