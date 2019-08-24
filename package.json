@@ -37,7 +37,8 @@
     "typescript": "^3.4.5"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "prestart": "sls dynamodb install",
+    "start": "sls offline start"
   },
   "keywords": [
     "Slack",
