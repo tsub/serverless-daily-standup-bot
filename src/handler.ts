@@ -1,4 +1,6 @@
 'use strict';
 
-import { expressApp } from './app';
-export const app = require('serverless-http')(expressApp);
+import { expressApp } from "./app";
+import serverless = require("serverless-http");
+
+export const app = serverless(expressApp);
