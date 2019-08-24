@@ -1,0 +1,30 @@
+Resources:
+  DynamoDBSessionsTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    Properties:
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      TableName: ${self:custom.resourcePrefix}-sessions
+
+  DynamoDBWorkspacesTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    Properties:
+      KeySchema:
+        - AttributeName: team_id
+          KeyType: HASH
+        - AttributeName: user_id
+          KeyType: RANGE
+      AttributeDefinitions:
+        - AttributeName: team_id
+          AttributeType: S
+        - AttributeName: user_id
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      TableName: ${self:custom.resourcePrefix}-workspaces

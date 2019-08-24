@@ -1,4 +1,5 @@
 plugins:
+  - serverless-dynamodb-local
   - serverless-offline
   - serverless-plugin-typescript
 
@@ -14,9 +15,24 @@ provider:
     SLACK_CLIENT_SECRET: ${env:SLACK_CLIENT_SECRET}
     SLACK_SIGNING_SECRET: ${env:SLACK_SIGNING_SECRET}
     SLACK_REDIRECT_URI: ${env:SLACK_REDIRECT_URI}
+    SESSION_SECRET: ${env:SESSION_SECRET}
+    SESSION_DYNAMODB_TABLE: ${self:custom.resourcePrefix}-sessions
+    WORKSPACE_DYNAMODB_TABLE: ${self:custom.resourcePrefix}-workspaces
 
 custom:
   currentStage: ${opt:stage, self:provider.stage}
+  resourcePrefix: ${self:service}-${self:custom.currentStage}
+
+  # serverless-dynamodb-local settings
+  dynamodb:
+    stages:
+      - dev
+    start:
+      port: 8000
+      inMemory: true
+      heapInitial: 200m
+      heapMax: 1g
+      migrate: true
 
 functions:
   app:
@@ -26,10 +42,13 @@ functions:
       - http:
           method: post
           path: /slack/events
+
       # OAuth Flow
       - http:
           method: get
-          path: /slack/installation
+          path: /slack/oauth
       - http:
           method: get
-          path: /slack/oauth
+          path: /slack/oauth/callback
+
+resources: ${file(resources.yml)}

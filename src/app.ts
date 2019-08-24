@@ -1,12 +1,14 @@
-// ------------------------------------------------------
-// Type definitions in TypeScript
-import * as WebApi from 'seratch-slack-types/web-api';
 import { Request, Response, Application } from 'express';
+import { App, ExpressReceiver, AuthorizeResult, AuthorizeSourceData } from '@slack/bolt';
+import { Passport } from 'passport';
+import * as OAuth2Strategy from 'passport-oauth2';
+import * as session from 'express-session';
+import * as connectDynamoDB from 'connect-dynamodb';
+import * as AWS from 'aws-sdk';
 
-// ------------------------------------------------------
-// Bot app
-// https://slack.dev/bolt/
-import { App, ExpressReceiver } from '@slack/bolt';
+const DynamoDBClient = new AWS.DynamoDB({
+  endpoint: 'http://localhost:8000', // TODO: Not used in production
+});
 
 const expressReceiver = new ExpressReceiver({
   signingSecret: process.env.SLACK_SIGNING_SECRET
@@ -14,9 +16,54 @@ const expressReceiver = new ExpressReceiver({
 export const expressApp: Application = expressReceiver.app;
 
 const app: App = new App({
-  receiver: expressReceiver
+  receiver: expressReceiver,
+  authorize: async function(source: AuthorizeSourceData): Promise<AuthorizeResult> {
+    console.log(source);
+
+    try {
+      let item;
+
+      if (source.userId) {
+        const getItemResult = await DynamoDBClient.getItem({
+          Key: {
+            "team_id": { S: source.teamId },
+            "user_id": { S: source.userId },
+          },
+          TableName: process.env.WORKSPACE_DYNAMODB_TABLE,
+        }).promise();
+
+        item = getItemResult.Item;
+      } else {
+        const queryResult = await DynamoDBClient.query({
+          ExpressionAttributeValues: {
+            ":team_id": { S: source.teamId },
+          },
+          KeyConditionExpression: "team_id = :team_id",
+          TableName: process.env.WORKSPACE_DYNAMODB_TABLE,
+        }).promise();
+
+        item = queryResult.Items[0];
+      }
+
+      const authTestResult = await this.client.auth.test({ token: item["bot_access_token"].S });
+
+      console.log(authTestResult);
+
+      return {
+        botToken: item["bot_access_token"].S,
+        botId: authTestResult.user_id,
+        botUserId: item["bot_user_id"].S,
+        userToken: item["user_access_token"].S,
+      };
+    } catch (err) {
+      throw new Error(err);
+    }
+  },
 });
 
+app.message('hi', async ({ message, say}) => {
+  say(`Hello, <@${message.user}>`);
+});
 
 // Check the details of the error to handle cases where you should retry sending a message or stop the app
 app.error((error) => {
@@ -25,35 +72,55 @@ app.error((error) => {
 
 // ------------------------------------------------------
 // OAuth flow
-expressApp.get('/slack/installation', (_req: Request, res: Response) => {
-  const clientId = process.env.SLACK_CLIENT_ID;
-  const scopesCsv = 'commands,users:read,users:read.email,team:read'; // TODO: modify
-  const state = 'randomly-generated-string'; // TODO: implement the logic
-  const url = `https://slack.com/oauth/authorize?client_id=${clientId}&scope=${scopesCsv}&state=${state}`;
-  res.redirect(url);
-});
 
-expressApp.get('/slack/oauth', (req: Request, res: Response) => {
-  // TODO: make sure if req.query.state is valid
-  app.client.oauth.access({
-    code: req.query.code,
-    client_id: process.env.SLACK_CLIENT_ID,
-    client_secret: process.env.SLACK_CLIENT_SECRET,
-    redirect_uri: process.env.SLACK_REDIRECT_URI
-  })
-    .then((apiRes: WebApi.OauthAccessResponse) => {
-      if (apiRes.ok) {
-        console.log(`Succeeded! ${JSON.stringify(apiRes)}`)
-        // TODO: show a complete webpage here
-        res.status(200).send(`Thanks!`);
-      } else {
-        console.error(`Failed because of ${apiRes.error}`)
-        // TODO: show a complete webpage here
-        res.status(500).send(`Something went wrong! error: ${apiRes.error}`);
-      }
-    }).catch(reason => {
-      console.error(`Failed because ${reason}`)
-      // TODO: show a complete webpage here
-      res.status(500).send(`Something went wrong! reason: ${reason}`);
-    });
-});
+const DynamoDBStore = connectDynamoDB({ session });
+const DynamoDBStoreOptions = {
+  table: process.env.SESSION_DYNAMODB_TABLE,
+  client: DynamoDBClient,
+};
+const passport = new Passport();
+
+expressApp.use(session({ store: new DynamoDBStore(DynamoDBStoreOptions), secret: process.env.SESSION_SECRET }))
+expressApp.use(passport.initialize());
+expressApp.use(passport.session());
+
+passport.use(new OAuth2Strategy({
+    authorizationURL: 'https://slack.com/oauth/authorize',
+    tokenURL: 'https://slack.com/api/oauth.access',
+    clientID: process.env.SLACK_CLIENT_ID,
+    clientSecret: process.env.SLACK_CLIENT_SECRET,
+    callbackURL: process.env.SLACK_REDIRECT_URI,
+    scope: 'bot,chat:write:bot',
+    scopeSeparator: ',',
+    state: true,
+  },
+  async (_accessToken: string, _refreshToken: string, results: any, _profile: any, cb: OAuth2Strategy.VerifyCallback): Promise<void> => {
+    console.log(results)
+
+    try {
+      await DynamoDBClient.putItem({
+        Item: {
+          "team_id": { S: results.team_id },
+          "user_id": { S: results.user_id },
+          "user_access_token": { S: results.access_token },
+          "bot_access_token": { S: results.bot.bot_access_token },
+          "bot_user_id": { S: results.bot.bot_user_id },
+        },
+        TableName: process.env.WORKSPACE_DYNAMODB_TABLE,
+      }).promise();
+
+      return cb(null, {});
+    } catch (err) {
+      return cb(err, {})
+    }
+  },
+));
+
+expressApp.get('/slack/oauth',
+  passport.authenticate('oauth2'));
+
+expressApp.get('/slack/oauth/callback',
+  passport.authenticate('oauth2', { session: false }),
+  (_req: Request, res: Response) => {
+    res.status(200).send('login succeeded');
+  });
