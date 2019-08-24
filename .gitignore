@@ -5,9 +5,6 @@ jspm_packages
 # Serverless directories
 .serverless
 
-# Webpack directories
-.webpack
-
 # secret variables
 .env*
 !.env.skeleton

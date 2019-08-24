@@ -1,6 +1,6 @@
 plugins:
   - serverless-offline
-  - serverless-webpack
+  - serverless-plugin-typescript
 
 service: daily-standup-bot
 
@@ -20,7 +20,7 @@ custom:
 
 functions:
   app:
-    handler: handler.app
+    handler: src/handler.app
     events:
       # Bolt App
       - http:
