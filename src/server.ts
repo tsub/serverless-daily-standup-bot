@@ -1,8 +1,8 @@
-import { Request, Response, Application } from 'express';
-import { Passport } from 'passport';
-import * as OAuth2Strategy from 'passport-oauth2';
-import * as session from 'express-session';
-import * as connectDynamoDB from 'connect-dynamodb';
+import { Request, Response, Application } from "express";
+import { Passport } from "passport";
+import * as OAuth2Strategy from "passport-oauth2";
+import * as session from "express-session";
+import * as connectDynamoDB from "connect-dynamodb";
 import { dynamoDBClient, saveWorkspace } from "./workspace";
 import { botApp, handleEvents } from "./bot";
 import {
@@ -10,23 +10,29 @@ import {
   sessionSecret,
   slackClientID,
   slackClientSecret,
-  slackRedirectURI,
-} from './env';
+  slackRedirectURI
+} from "./env";
 import {
   slackAuthorizationURL,
   slackTokenURL,
-  slackAuthorizationScope,
+  slackAuthorizationScope
 } from "./config";
 
-const verify: OAuth2Strategy.VerifyFunction = async (_accessToken, _refreshToken, results, _profile, cb) => {
-  console.log(results)
+const verify: OAuth2Strategy.VerifyFunction = async (
+  _accessToken,
+  _refreshToken,
+  results,
+  _profile,
+  cb
+) => {
+  console.log(results);
 
   try {
     await saveWorkspace(results);
 
     return cb(null, {});
   } catch (err) {
-    return cb(err, {})
+    return cb(err, {});
   }
 };
 
@@ -36,11 +42,16 @@ export const routes: (_: Application) => Application = app => {
   const DynamoDBStore = connectDynamoDB({ session });
   const DynamoDBStoreOptions = {
     table: sessionDynamoDBTable,
-    client: dynamoDBClient,
+    client: dynamoDBClient
   };
   const passport = new Passport();
 
-  app.use(session({ store: new DynamoDBStore(DynamoDBStoreOptions), secret: sessionSecret }))
+  app.use(
+    session({
+      store: new DynamoDBStore(DynamoDBStoreOptions),
+      secret: sessionSecret
+    })
+  );
   app.use(passport.initialize());
   app.use(passport.session());
 
@@ -52,21 +63,22 @@ export const routes: (_: Application) => Application = app => {
       clientSecret: slackClientSecret,
       callbackURL: slackRedirectURI,
       scope: slackAuthorizationScope,
-      state: true,
+      state: true
     },
-    verify,
+    verify
   );
 
   passport.use(oauth2Strategy);
 
-  app.get('/slack/oauth',
-    passport.authenticate('oauth2'));
+  app.get("/slack/oauth", passport.authenticate("oauth2"));
 
-  app.get('/slack/oauth/callback',
-    passport.authenticate('oauth2', { session: false }),
+  app.get(
+    "/slack/oauth/callback",
+    passport.authenticate("oauth2", { session: false }),
     (_req: Request, res: Response) => {
-      res.status(200).send('login succeeded');
-    });
+      res.status(200).send("login succeeded");
+    }
+  );
 
   return app;
-}
+};
