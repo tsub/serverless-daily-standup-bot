@@ -30,7 +30,7 @@
     "eslint-config-prettier": "^6.1.0",
     "eslint-plugin-prettier": "^3.1.0",
     "prettier": "^1.18.2",
-    "seratch-slack-types": "^0.2.1",
+    "seratch-slack-types": "^0.2.8",
     "serverless-dynamodb-local": "^0.2.38",
     "serverless-offline": "^4.10.0",
     "serverless-plugin-typescript": "^1.1.9",
