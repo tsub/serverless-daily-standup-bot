@@ -7,7 +7,7 @@ service: daily-standup-bot
 
 provider:
   name: aws
-  runtime: nodejs8.10
+  runtime: nodejs10
   region: ${env:AWS_REGION, 'us-east-1'}
   environment:
     SERVERLESS_STAGE: ${self:custom.currentStage}
