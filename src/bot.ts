@@ -4,6 +4,7 @@ import {
   AuthorizeResult,
   AuthorizeSourceData
 } from "@slack/bolt";
+import * as WebApi from "seratch-slack-types/web-api";
 import { getWorkspace } from "./workspace";
 import { slackSigningSecret } from "./env";
 
@@ -14,9 +15,11 @@ const authorize: (
 
   try {
     const workspace = await getWorkspace(source);
-    const authTestResult = await this.client.auth.test({
-      token: workspace.botAccessToken
-    });
+    const authTestResult: WebApi.AuthTestResponse = await this.client.auth.test(
+      {
+        token: workspace.botAccessToken
+      }
+    );
 
     console.log(authTestResult);
 
