@@ -25,7 +25,7 @@ const verify: OAuth2Strategy.VerifyFunction = async (
   _profile,
   cb
 ) => {
-  console.log(results);
+  console.log(JSON.stringify(results));
 
   try {
     await saveWorkspace(results);

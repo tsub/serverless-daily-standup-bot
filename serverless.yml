@@ -19,6 +19,9 @@ provider:
     SESSION_DYNAMODB_TABLE: ${self:custom.resourcePrefix}-sessions
     WORKSPACE_DYNAMODB_TABLE: ${self:custom.resourcePrefix}-workspaces
     DYNAMODB_ENDPOINT: ${env:DYNAMODB_ENDPOINT}
+    SETTING_DYNAMODB_TABLE: ${self:custom.resourcePrefix}-settings
+    # APP_NAME: ${self:service}
+    APP_NAME: bolt-tutorial
 
 custom:
   currentStage: ${opt:stage, self:provider.stage}
