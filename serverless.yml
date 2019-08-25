@@ -9,6 +9,15 @@ provider:
   name: aws
   runtime: nodejs10
   region: ${env:AWS_REGION, 'us-east-1'}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+      Resource:
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.resourcePrefix}-settings
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.resourcePrefix}-sessions
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.resourcePrefix}-workspaces
   environment:
     SERVERLESS_STAGE: ${self:custom.currentStage}
     SLACK_CLIENT_ID: ${env:SLACK_CLIENT_ID}
