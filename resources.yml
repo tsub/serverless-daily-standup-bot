@@ -4,10 +4,10 @@ Resources:
     DeletionPolicy: Retain
     Properties:
       KeySchema:
-        - AttributeName: id
+        - AttributeName: sessionID
           KeyType: HASH
       AttributeDefinitions:
-        - AttributeName: id
+        - AttributeName: sessionID
           AttributeType: S
       BillingMode: PAY_PER_REQUEST
       TableName: ${self:custom.resourcePrefix}-sessions
@@ -17,14 +17,14 @@ Resources:
     DeletionPolicy: Retain
     Properties:
       KeySchema:
-        - AttributeName: team_id
+        - AttributeName: teamID
           KeyType: HASH
-        - AttributeName: user_id
+        - AttributeName: userID
           KeyType: RANGE
       AttributeDefinitions:
-        - AttributeName: team_id
+        - AttributeName: teamID
           AttributeType: S
-        - AttributeName: user_id
+        - AttributeName: userID
           AttributeType: S
       BillingMode: PAY_PER_REQUEST
       TableName: ${self:custom.resourcePrefix}-workspaces

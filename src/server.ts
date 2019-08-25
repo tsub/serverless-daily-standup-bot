@@ -42,7 +42,8 @@ export const routes: (_: Application) => Application = app => {
   const DynamoDBStore = connectDynamoDB({ session });
   const DynamoDBStoreOptions = {
     table: sessionDynamoDBTable,
-    client: dynamoDBClient
+    client: dynamoDBClient,
+    hashKey: "sessionID"
   };
   const passport = new Passport();
 

@@ -21,11 +21,11 @@ export const saveWorkspace: (
   return dynamoDBClient
     .putItem({
       Item: {
-        team_id: { S: results.team_id },
-        user_id: { S: results.user_id },
-        user_access_token: { S: results.access_token },
-        bot_access_token: { S: results.bot.bot_access_token },
-        bot_user_id: { S: results.bot.bot_user_id }
+        teamID: { S: results.team_id },
+        userID: { S: results.user_id },
+        userAccessToken: { S: results.access_token },
+        botAccessToken: { S: results.bot.bot_access_token },
+        botUserID: { S: results.bot.bot_user_id }
       },
       TableName: workspaceDynamoDBTable
     })
@@ -41,8 +41,8 @@ export const getWorkspace: (
     const getItemResult = await dynamoDBClient
       .getItem({
         Key: {
-          team_id: { S: source.teamId },
-          user_id: { S: source.userId }
+          teamID: { S: source.teamId },
+          userID: { S: source.userId }
         },
         TableName: workspaceDynamoDBTable
       })
@@ -53,9 +53,9 @@ export const getWorkspace: (
     const queryResult = await dynamoDBClient
       .query({
         ExpressionAttributeValues: {
-          ":team_id": { S: source.teamId }
+          ":teamID": { S: source.teamId }
         },
-        KeyConditionExpression: "team_id = :team_id",
+        KeyConditionExpression: "teamID = :teamID",
         TableName: workspaceDynamoDBTable
       })
       .promise();
@@ -64,10 +64,10 @@ export const getWorkspace: (
   }
 
   return {
-    teamID: item["team_id"].S,
-    userID: item["user_id"].S,
-    userAccessToken: item["user_access_token"].S,
-    botAccessToken: item["bot_access_token"].S,
-    botUserID: item["bot_user_id"].S
+    teamID: item.teamID.S,
+    userID: item.userID.S,
+    userAccessToken: item.userAccessToken.S,
+    botAccessToken: item.botAccessToken.S,
+    botUserID: item.botUserID.S
   } as workspace;
 };
