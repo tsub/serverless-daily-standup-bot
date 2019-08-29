@@ -7,6 +7,8 @@ import {
   DialogSubmitAction
 } from "@slack/bolt";
 import * as WebApi from "seratch-slack-types/web-api";
+import * as cron from "cron-parser";
+import * as moment from "moment";
 import { getWorkspace } from "./workspace";
 import { slackSigningSecret, appName } from "./env";
 import { setting, getSetting, saveSetting } from "./setting";
@@ -89,12 +91,11 @@ Anything blocking your progress?`,
                 },
                 {
                   type: "text",
-                  hint:
-                    "https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html",
+                  hint: "Cron expression",
                   label: "Execution schedule",
-                  name: "schedule_expression",
-                  placeholder: "cron(0 1 ? * MON-FRI *)",
-                  value: setting && setting.scheduleExpression
+                  name: "cron_expression",
+                  placeholder: "0 1 * * MON-FRI",
+                  value: setting && setting.cronExpression
                 }
               ]
             }
@@ -133,13 +134,22 @@ Anything blocking your progress?`,
         .split("\n")
         .map(question => question.trim())
         .filter(question => question !== "");
+      const cronExpression = payload.submission.cron_expression;
+      const schedule = cron.parseExpression(cronExpression, { utc: true });
+      const date = schedule.next().toDate();
+      const nextExecutionDate = moment(date).format("YYYY-MM-DD");
+      const nextExecutionTimestamp = moment(date)
+        .unix()
+        .toString();
 
       await saveSetting({
         teamID: payload.team.id,
         channelID: payload.channel.id,
         userIDs: userIDs,
         questions: questions,
-        scheduleExpression: payload.submission.schedule_expression
+        cronExpression: cronExpression,
+        nextExecutionDate: nextExecutionDate,
+        nextExecutionTimestamp: nextExecutionTimestamp
       } as setting);
 
       /* eslint-disable @typescript-eslint/camelcase */

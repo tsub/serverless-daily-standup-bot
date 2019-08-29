@@ -63,5 +63,10 @@ functions:
       - http:
           method: get
           path: /slack/oauth/callback
+  scheduler:
+    handler: src/handler.scheduler
+    reservedConcurrency: 1
+    events:
+      - schedule: rate(1 minute)
 
 resources: ${file(resources.yml)}

@@ -39,5 +39,18 @@ Resources:
       AttributeDefinitions:
         - AttributeName: identifier
           AttributeType: S
+        - AttributeName: nextExecutionDate
+          AttributeType: S
+        - AttributeName: nextExecutionTimestamp
+          AttributeType: N
+      GlobalSecondaryIndexes: 
+        - IndexName: nextExecutionDate
+          KeySchema:
+            - AttributeName: nextExecutionDate
+              KeyType: HASH
+            - AttributeName: nextExecutionTimestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
       BillingMode: PAY_PER_REQUEST
       TableName: ${self:custom.resourcePrefix}-settings
