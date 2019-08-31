@@ -5,12 +5,12 @@ const dynamoDBClient: AWS.DynamoDB = new AWS.DynamoDB({
   endpoint: dynamoDBEndpoint
 });
 
-type question = {
+export type Question = {
   text: string;
   postedAt?: string;
 };
 
-type answer = {
+export type Answer = {
   text: string;
   postedAt: string;
 };
@@ -18,20 +18,27 @@ type answer = {
 export type Standup = {
   identifier: string;
   date: string;
-  questions: Array<question>;
-  answers?: Array<answer>;
+  questions: Array<Question>;
+  answers: Array<Answer>;
   finishedAt?: string;
   teamID: string;
-  channelID: string;
+  targetChannelID: string;
   userID: string;
 };
 
-export const initialStandup: (
+export const saveStandup: (
   _: Standup
 ) => Promise<AWS.DynamoDB.PutItemOutput> = standup => {
   const questions = standup.questions.map(question => ({
     M: {
-      text: { S: question.text }
+      text: { S: question.text },
+      postedAt: question.postedAt && { S: question.postedAt }
+    }
+  }));
+  const answers = standup.answers.map(answer => ({
+    M: {
+      text: { S: answer.text },
+      postedAt: { S: answer.postedAt }
     }
   }));
 
@@ -39,11 +46,13 @@ export const initialStandup: (
     .putItem({
       Item: {
         identifier: {
-          S: `${standup.teamID}.${standup.channelID}.${standup.userID}`
+          S: `${standup.teamID}.${standup.userID}`
         },
         date: { S: standup.date },
         questions: { L: questions },
-        answers: { L: [] }
+        answers: { L: answers },
+        finishedAt: standup.finishedAt && { S: standup.finishedAt },
+        targetChannelID: { S: standup.targetChannelID }
       },
       TableName: standupDynamoDBTable
     })
@@ -52,14 +61,13 @@ export const initialStandup: (
 
 export const getStandup: (
   teamID: string,
-  channelID: string,
   userID: string,
   currentDate: string
-) => Promise<Standup> = async (teamID, channelID, userID, currentDate) => {
+) => Promise<Standup> = async (teamID, userID, currentDate) => {
   const getItemResponse = await dynamoDBClient
     .getItem({
       Key: {
-        identifier: { S: `${teamID}.${channelID}.${userID}` },
+        identifier: { S: `${teamID}.${userID}` },
         date: { S: currentDate }
       },
       TableName: standupDynamoDBTable
@@ -81,11 +89,12 @@ export const getStandup: (
 
   return {
     identifier: getItemResponse.Item.identifier.S,
+    date: getItemResponse.Item.date.S,
     questions: questions,
     answers: answers,
     finishedAt:
       getItemResponse.Item.finishedAt && getItemResponse.Item.finishedAt.S,
-    channelID: channelID,
+    targetChannelID: getItemResponse.Item.targetChannelID.S,
     teamID: teamID,
     userID: userID
   } as Standup;

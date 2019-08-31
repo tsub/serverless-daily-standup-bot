@@ -2,13 +2,17 @@ import { expressReceiver } from "./bot";
 import { routes } from "./server";
 import { sqsStartQueue, sqsEndpoint } from "./env";
 import serverless = require("serverless-http");
-import { ScheduledHandler, SQSHandler } from "aws-lambda";
+import {
+  ScheduledHandler,
+  SQSHandler,
+  DynamoDBStreamHandler
+} from "aws-lambda";
 import {
   Setting,
   getSettingsByNextExecutionTimestamp,
   updateNextExecutionTimestamp
 } from "./setting";
-import { Standup, initialStandup, getStandup } from "./standup";
+import { Standup, saveStandup, getStandup } from "./standup";
 import * as moment from "moment-timezone";
 import * as AWS from "aws-sdk";
 import { getWorkspace } from "./workspace";
@@ -86,7 +90,6 @@ export const start: SQSHandler = async (event, _, callback) => {
 
       const existStandup = await getStandup(
         setting.teamID,
-        setting.channelID,
         userID,
         currentDate
       );
@@ -101,16 +104,93 @@ export const start: SQSHandler = async (event, _, callback) => {
 
       const standup = {
         teamID: setting.teamID,
-        channelID: setting.channelID,
+        targetChannelID: setting.channelID,
         userID: userID,
         questions: questions,
+        answers: [],
         date: currentDate
       } as Standup;
 
-      promises.push(initialStandup(standup));
+      promises.push(saveStandup(standup));
     }
   }
   await Promise.all(promises);
+
+  return callback(null);
+};
+
+export const standup: DynamoDBStreamHandler = async (event, _, callback) => {
+  console.log(JSON.stringify(event));
+
+  for (const record of event.Records) {
+    if (record.eventName === "REMOVE") {
+      continue;
+    }
+
+    const questions = record.dynamodb.NewImage.questions.L.map(question => ({
+      text: question.M.text.S,
+      postedAt: question.M.postedAt && question.M.postedAt.S
+    }));
+    const answers = record.dynamodb.NewImage.answers.L.map(answer => ({
+      text: answer.M.text.S,
+      postedAt: answer.M.postedAt && answer.M.postedAt.S
+    }));
+    const identifier = record.dynamodb.Keys.identifier.S;
+    const [teamID, userID] = identifier.split(".");
+    const standup = {
+      identifier: identifier,
+      date: record.dynamodb.Keys.date.S,
+      questions: questions,
+      answers: answers,
+      finishedAt:
+        record.dynamodb.NewImage.finishedAt &&
+        record.dynamodb.NewImage.finishedAt.S,
+      teamID: teamID,
+      targetChannelID: record.dynamodb.NewImage.targetChannelID.S,
+      userID: userID
+    } as Standup;
+
+    const workspace = await getWorkspace(teamID, userID);
+    const slackClient = new WebClient();
+
+    if (questions.length - answers.length > 0) {
+      // Send a next question if haven't answered all questions yet
+      const nextQuestionIndex = answers.length;
+      const nextQuestion = questions[nextQuestionIndex];
+
+      console.log(nextQuestion);
+
+      if (nextQuestion.postedAt !== undefined) {
+        // Skip if already send a next question
+        continue;
+      }
+
+      const postMessageResponse: WebApi.ChatPostMessageResponse = await slackClient.chat.postMessage(
+        /* eslint-disable @typescript-eslint/camelcase */
+        {
+          token: workspace.botAccessToken,
+          channel: userID,
+          text: nextQuestion.text,
+          as_user: true
+        }
+        /* eslint-enable @typescript-eslint/camelcase */
+      );
+      console.log(JSON.stringify(postMessageResponse));
+
+      standup.questions[nextQuestionIndex].postedAt = postMessageResponse.ts;
+      await saveStandup(standup);
+
+      continue;
+    }
+
+    if (answers.length !== questions.length) {
+      // Skip if unintended state
+      console.log(`unintended state in user: ${userID}`);
+      continue;
+    }
+
+    console.log(`finished user: ${userID}`);
+  }
 
   return callback(null);
 };

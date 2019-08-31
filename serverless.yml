@@ -1,9 +1,10 @@
 plugins:
+  - serverless-plugin-typescript
   - serverless-dynamodb-local
+  # - serverless-offline-dynamodb-streams # endless function call
   - serverless-offline-aws-sqs
   - serverless-offline-scheduler
   - serverless-offline
-  - serverless-plugin-typescript
 
 service: daily-standup-bot
 
@@ -50,8 +51,12 @@ custom:
       port: 8000
       migrate: true
       noStart: true
-    
-  # serverless-offline-aws-sqs settings
+
+  # serverless-offline-dynamodb-streams settings
+  serverless-offline-dynamodb-streams:
+    endpoint: ${env:DYNAMODB_ENDPOINT, 'http://localhost:8000'}
+    readInterval: 60000 # milliseconds
+
   serverless-offline-aws-sqs:
     autoCreate: true
     endpoint: ${env:SQS_ENDPOINT, 'http://localhost:9324'}
@@ -85,5 +90,15 @@ functions:
             Fn::GetAtt:
               - SQSStartQueue
               - Arn
+  standup:
+    handler: src/handler.standup
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt:
+              - DynamoDBStandupsTable
+              - StreamArn
+          startingPosition: TRIM_HORIZON
 
 resources: ${file(resources.yml)}

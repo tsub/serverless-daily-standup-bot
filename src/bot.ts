@@ -8,10 +8,11 @@ import {
 } from "@slack/bolt";
 import * as WebApi from "seratch-slack-types/web-api";
 import * as cron from "cron-parser";
-import * as moment from "moment";
+import * as moment from "moment-timezone";
 import { getWorkspace } from "./workspace";
 import { slackSigningSecret, appName } from "./env";
 import { Setting, getSetting, saveSetting } from "./setting";
+import { Answer, getStandup, saveStandup } from "./standup";
 
 const authorize: (
   _: AuthorizeSourceData
@@ -157,6 +158,44 @@ Anything blocking your progress?`,
       /* eslint-enable @typescript-eslint/camelcase */
     }
   );
+
+  app.event("message", async ({ payload, context }) => {
+    if (payload.channel_type !== "im") {
+      return;
+    }
+    console.log(JSON.stringify(payload));
+
+    const answer = {
+      text: payload.text,
+      postedAt: payload.ts
+    } as Answer;
+
+    const usersInfoResponse: WebApi.UsersInfoResponse = await app.client.users.info(
+      {
+        token: context.botToken,
+        user: payload.user
+      }
+    );
+    const currentDate = moment()
+      .tz(usersInfoResponse.user.tz)
+      .format("YYYY-MM-DD");
+
+    const standup = await getStandup(payload.team, payload.user, currentDate);
+    console.log(JSON.stringify(standup));
+
+    switch (payload.sub_type) {
+      case undefined: // new message
+        if (standup.answers.length >= standup.questions.length) {
+          break;
+        }
+
+        standup.answers.push(answer);
+        await saveStandup(standup);
+
+        break;
+      default:
+    }
+  });
 
   app.error(error => {
     console.error(error);

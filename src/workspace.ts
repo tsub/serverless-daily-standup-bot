@@ -49,7 +49,9 @@ export const getWorkspace: (
       .promise();
 
     item = getItemResult.Item;
-  } else {
+  }
+
+  if (item === undefined) {
     const queryResult = await dynamoDBClient
       .query({
         ExpressionAttributeValues: {

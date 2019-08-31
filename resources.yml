@@ -71,6 +71,8 @@ Resources:
           AttributeType: S
       BillingMode: PAY_PER_REQUEST
       TableName: ${self:custom.resourcePrefix}-standups
+      StreamSpecification:
+        StreamViewType: NEW_IMAGE
 
   SQSStartQueue:
     Type: AWS::SQS::Queue
