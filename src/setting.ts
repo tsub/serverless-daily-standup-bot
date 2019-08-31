@@ -3,7 +3,7 @@ import * as cron from "cron-parser";
 import * as moment from "moment";
 import { settingDynamoDBTable, dynamoDBEndpoint } from "./env";
 
-export type setting = {
+export type Setting = {
   identifier: string;
   teamID: string;
   channelID: string;
@@ -19,8 +19,8 @@ export const dynamoDBClient: AWS.DynamoDB = new AWS.DynamoDB({
 });
 
 export const saveSetting: (
-  _: setting
-) => Promise<AWS.DynamoDB.PutItemOutput> = async setting => {
+  _: Setting
+) => Promise<AWS.DynamoDB.PutItemOutput> = setting => {
   return dynamoDBClient
     .putItem({
       Item: {
@@ -39,7 +39,7 @@ export const saveSetting: (
 export const getSetting: (
   teamID: string,
   channelID: string
-) => Promise<setting> = async (teamID, channelID) => {
+) => Promise<Setting> = async (teamID, channelID) => {
   const getItemResult = await dynamoDBClient
     .getItem({
       Key: {
@@ -62,13 +62,13 @@ export const getSetting: (
     nextExecutionTimestamp: getItemResult.Item.nextExecutionTimestamp.N,
     channelID: channelID,
     teamID: teamID
-  } as setting;
+  } as Setting;
 };
 
 export const getSettingsByNextExecutionTimestamp: (
   currentDate: string,
   currentTimestamp: string
-) => Promise<Array<setting>> = async (currentDate, currentTimestamp) => {
+) => Promise<Array<Setting>> = async (currentDate, currentTimestamp) => {
   const queryResult = await dynamoDBClient
     .query({
       ExpressionAttributeValues: {
@@ -94,12 +94,12 @@ export const getSettingsByNextExecutionTimestamp: (
       nextExecutionTimestamp: item.nextExecutionTimestamp.N,
       channelID: channelID,
       teamID: teamID
-    } as setting;
+    } as Setting;
   });
 };
 
 export const updateNextExecutionTimestamp: (
-  _: setting
+  _: Setting
 ) => Promise<AWS.DynamoDB.PutItemOutput> = async setting => {
   const schedule = cron.parseExpression(setting.cronExpression, { utc: true });
   const date = schedule.next().toDate();

@@ -18,6 +18,7 @@ export const appName = getEnv("APP_NAME");
 export const workspaceDynamoDBTable = getEnv("WORKSPACE_DYNAMODB_TABLE");
 export const settingDynamoDBTable = getEnv("SETTING_DYNAMODB_TABLE");
 export const sessionDynamoDBTable = getEnv("SESSION_DYNAMODB_TABLE");
+export const standupDynamoDBTable = getEnv("STANDUP_DYNAMODB_TABLE");
 export const sessionSecret = getEnv("SESSION_SECRET");
 export const slackSigningSecret = getEnv("SLACK_SIGNING_SECRET");
 export const slackClientID = getEnv("SLACK_CLIENT_ID");

@@ -4,9 +4,11 @@ import { sqsStartQueue, sqsEndpoint } from "./env";
 import serverless = require("serverless-http");
 import { ScheduledHandler, SQSHandler } from "aws-lambda";
 import {
+  Setting,
   getSettingsByNextExecutionTimestamp,
   updateNextExecutionTimestamp
 } from "./setting";
+import { Standup, initialStandup, getStandup } from "./standup";
 import * as moment from "moment";
 import * as AWS from "aws-sdk";
 
@@ -60,8 +62,53 @@ export const scheduler: ScheduledHandler = async (
   }
 };
 
-export const start: SQSHandler = (event, _, callback) => {
+export const start: SQSHandler = async (event, _, callback) => {
   console.log(JSON.stringify(event));
+
+  const currentDate = moment().format("YYYY-MM-DD");
+
+  const getStandupPromises = [];
+  event.Records.forEach(record => {
+    const setting = JSON.parse(record.body) as Setting;
+
+    setting.userIDs.forEach(userID => {
+      const getStandupPromise = getStandup(
+        setting.teamID,
+        setting.channelID,
+        userID,
+        currentDate
+      );
+
+      getStandupPromises.push(getStandupPromise);
+    });
+  });
+  const standups = await Promise.all(getStandupPromises);
+
+  const initialStandupPromises = [];
+  event.Records.forEach(record => {
+    const setting = JSON.parse(record.body) as Setting;
+
+    setting.userIDs.forEach(userID => {
+      if (standups.some(standup => standup.userID === userID)) {
+        return;
+      }
+
+      const questions = setting.questions.map(question => ({
+        text: question
+      }));
+
+      const standup = {
+        teamID: setting.teamID,
+        channelID: setting.channelID,
+        userID: userID,
+        questions: questions,
+        date: currentDate
+      } as Standup;
+
+      initialStandupPromises.push(initialStandup(standup));
+    });
+  });
+  await Promise.all(initialStandupPromises);
 
   return callback(null);
 };

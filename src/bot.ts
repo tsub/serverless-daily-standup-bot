@@ -11,7 +11,7 @@ import * as cron from "cron-parser";
 import * as moment from "moment";
 import { getWorkspace } from "./workspace";
 import { slackSigningSecret, appName } from "./env";
-import { setting, getSetting, saveSetting } from "./setting";
+import { Setting, getSetting, saveSetting } from "./setting";
 
 const authorize: (
   _: AuthorizeSourceData
@@ -150,7 +150,7 @@ Anything blocking your progress?`,
         cronExpression: cronExpression,
         nextExecutionDate: nextExecutionDate,
         nextExecutionTimestamp: nextExecutionTimestamp
-      } as setting);
+      } as Setting);
 
       /* eslint-disable @typescript-eslint/camelcase */
       respond({ text: "settings succeeded", response_type: "in_channel" });

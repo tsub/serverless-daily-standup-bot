@@ -31,6 +31,7 @@ provider:
     WORKSPACE_DYNAMODB_TABLE: ${self:custom.resourcePrefix}-workspaces
     DYNAMODB_ENDPOINT: ${env:DYNAMODB_ENDPOINT}
     SETTING_DYNAMODB_TABLE: ${self:custom.resourcePrefix}-settings
+    STANDUP_DYNAMODB_TABLE: ${self:custom.resourcePrefix}-standups
     # APP_NAME: ${self:service}
     APP_NAME: bolt-tutorial
     SQS_START_QUEUE: ${self:custom.resourcePrefix}-start
