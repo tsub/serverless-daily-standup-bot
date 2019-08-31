@@ -44,11 +44,10 @@ custom:
     stages:
       - dev
     start:
+      host: localhost
       port: 8000
-      inMemory: true
-      heapInitial: 200m
-      heapMax: 1g
       migrate: true
+      noStart: true
     
   # serverless-offline-aws-sqs settings
   serverless-offline-aws-sqs:

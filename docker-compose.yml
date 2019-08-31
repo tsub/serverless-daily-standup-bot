@@ -4,3 +4,13 @@ services:
     image: softwaremill/elasticmq
     ports:
       - "9324:9324"
+
+  dynamodb:
+    image: amazon/dynamodb-local
+    ports:
+      - "8000:8000"
+    command:
+      - "-jar"
+      - "DynamoDBLocal.jar"
+      - "-sharedDb"
+      - "-inMemory"

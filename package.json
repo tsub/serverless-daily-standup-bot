@@ -40,7 +40,7 @@
     "typescript": "^3.4.5"
   },
   "scripts": {
-    "prestart": "sls dynamodb install",
+    "prestart": "docker-compose up -d",
     "start": "sls offline start"
   },
   "keywords": [
