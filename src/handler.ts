@@ -9,8 +9,11 @@ import {
   updateNextExecutionTimestamp
 } from "./setting";
 import { Standup, initialStandup, getStandup } from "./standup";
-import * as moment from "moment";
+import * as moment from "moment-timezone";
 import * as AWS from "aws-sdk";
+import { getWorkspace } from "./workspace";
+import { WebClient } from "@slack/web-api";
+import * as WebApi from "seratch-slack-types/web-api";
 
 export const app = serverless(routes(expressReceiver.app));
 
@@ -65,31 +68,30 @@ export const scheduler: ScheduledHandler = async (
 export const start: SQSHandler = async (event, _, callback) => {
   console.log(JSON.stringify(event));
 
-  const currentDate = moment().format("YYYY-MM-DD");
-
-  const getStandupPromises = [];
-  event.Records.forEach(record => {
+  const promises = [];
+  for (const record of event.Records) {
     const setting = JSON.parse(record.body) as Setting;
 
-    setting.userIDs.forEach(userID => {
-      const getStandupPromise = getStandup(
+    for (const userID of setting.userIDs) {
+      const workspace = await getWorkspace(setting.teamID, userID);
+      const slackClient = new WebClient(workspace.userAccessToken);
+
+      const usersInfoResponse: WebApi.UsersInfoResponse = await slackClient.users.info(
+        { user: userID }
+      );
+
+      const currentDate = moment()
+        .tz(usersInfoResponse.user.tz)
+        .format("YYYY-MM-DD");
+
+      const existStandup = await getStandup(
         setting.teamID,
         setting.channelID,
         userID,
         currentDate
       );
 
-      getStandupPromises.push(getStandupPromise);
-    });
-  });
-  const standups = await Promise.all(getStandupPromises);
-
-  const initialStandupPromises = [];
-  event.Records.forEach(record => {
-    const setting = JSON.parse(record.body) as Setting;
-
-    setting.userIDs.forEach(userID => {
-      if (standups.some(standup => standup.userID === userID)) {
+      if (existStandup !== undefined) {
         return;
       }
 
@@ -105,10 +107,10 @@ export const start: SQSHandler = async (event, _, callback) => {
         date: currentDate
       } as Standup;
 
-      initialStandupPromises.push(initialStandup(standup));
-    });
-  });
-  await Promise.all(initialStandupPromises);
+      promises.push(initialStandup(standup));
+    }
+  }
+  await Promise.all(promises);
 
   return callback(null);
 };

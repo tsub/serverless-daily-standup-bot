@@ -19,7 +19,7 @@ const authorize: (
   console.log(JSON.stringify(source));
 
   try {
-    const workspace = await getWorkspace(source);
+    const workspace = await getWorkspace(source.teamId, source.userId);
     const authTestResult: WebApi.AuthTestResponse = await this.client.auth.test(
       {
         token: workspace.botAccessToken

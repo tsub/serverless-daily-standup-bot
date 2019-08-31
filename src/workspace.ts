@@ -1,4 +1,3 @@
-import { AuthorizeSourceData } from "@slack/bolt";
 import * as WebApi from "seratch-slack-types/web-api";
 import * as AWS from "aws-sdk";
 import { workspaceDynamoDBTable, dynamoDBEndpoint } from "./env";
@@ -33,16 +32,17 @@ export const saveWorkspace: (
 };
 
 export const getWorkspace: (
-  _: AuthorizeSourceData
-) => Promise<workspace> = async source => {
+  teamID: string,
+  userID?: string
+) => Promise<workspace> = async (teamID, userID) => {
   let item: AWS.DynamoDB.AttributeMap;
 
-  if (source.userId) {
+  if (userID) {
     const getItemResult = await dynamoDBClient
       .getItem({
         Key: {
-          teamID: { S: source.teamId },
-          userID: { S: source.userId }
+          teamID: { S: teamID },
+          userID: { S: userID }
         },
         TableName: workspaceDynamoDBTable
       })
@@ -53,7 +53,7 @@ export const getWorkspace: (
     const queryResult = await dynamoDBClient
       .query({
         ExpressionAttributeValues: {
-          ":teamID": { S: source.teamId }
+          ":teamID": { S: teamID }
         },
         KeyConditionExpression: "teamID = :teamID",
         TableName: workspaceDynamoDBTable
