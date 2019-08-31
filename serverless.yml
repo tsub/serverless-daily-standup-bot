@@ -1,6 +1,7 @@
 plugins:
   - serverless-dynamodb-local
   - serverless-offline-aws-sqs
+  - serverless-offline-scheduler
   - serverless-offline
   - serverless-plugin-typescript
 

@@ -36,6 +36,7 @@
     "serverless-dynamodb-local": "^0.2.38",
     "serverless-offline": "^4.10.0",
     "serverless-offline-aws-sqs": "^1.0.3",
+    "serverless-offline-scheduler": "^0.3.8",
     "serverless-plugin-typescript": "^1.1.9",
     "typescript": "^3.4.5"
   },
