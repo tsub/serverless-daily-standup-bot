@@ -1,5 +1,6 @@
 plugins:
   - serverless-dynamodb-local
+  - serverless-offline-aws-sqs
   - serverless-offline
   - serverless-plugin-typescript
 
@@ -31,6 +32,8 @@ provider:
     SETTING_DYNAMODB_TABLE: ${self:custom.resourcePrefix}-settings
     # APP_NAME: ${self:service}
     APP_NAME: bolt-tutorial
+    SQS_START_QUEUE: ${self:custom.resourcePrefix}-start
+    SQS_ENDPOINT: ${env:SQS_ENDPOINT}
 
 custom:
   currentStage: ${opt:stage, self:provider.stage}
@@ -46,6 +49,11 @@ custom:
       heapInitial: 200m
       heapMax: 1g
       migrate: true
+    
+  # serverless-offline-aws-sqs settings
+  serverless-offline-aws-sqs:
+    autoCreate: true
+    endpoint: ${env:SQS_ENDPOINT, 'http://localhost:9324'}
 
 functions:
   app:
@@ -68,5 +76,13 @@ functions:
     reservedConcurrency: 1
     events:
       - schedule: rate(1 minute)
+  start:
+    handler: src/handler.start
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - SQSStartQueue
+              - Arn
 
 resources: ${file(resources.yml)}

@@ -23,4 +23,6 @@ export const slackSigningSecret = getEnv("SLACK_SIGNING_SECRET");
 export const slackClientID = getEnv("SLACK_CLIENT_ID");
 export const slackClientSecret = getEnv("SLACK_CLIENT_SECRET");
 export const slackRedirectURI = getEnv("SLACK_REDIRECT_URI");
+export const sqsStartQueue = getEnv("SQS_START_QUEUE");
 export const dynamoDBEndpoint = process.env.DYNAMODB_ENDPOINT;
+export const sqsEndpoint = process.env.SQS_ENDPOINT;
