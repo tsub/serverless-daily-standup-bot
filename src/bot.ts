@@ -4,7 +4,8 @@ import {
   AuthorizeResult,
   AuthorizeSourceData,
   SlackActionMiddlewareArgs,
-  DialogSubmitAction
+  DialogSubmitAction,
+  directMention
 } from "@slack/bolt";
 import * as WebApi from "seratch-slack-types/web-api";
 import * as cron from "cron-parser";
@@ -50,7 +51,7 @@ export const botApp: App = new App({
 });
 
 export const handleEvents: (_: App) => App = app => {
-  app.message("hi", async ({ message, say }) => {
+  app.message("hi", directMention(), ({ message, say }) => {
     say(`Hello, <@${message.user}>`);
   });
 
