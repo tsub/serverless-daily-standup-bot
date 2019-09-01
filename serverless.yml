@@ -1,7 +1,7 @@
 plugins:
   - serverless-plugin-typescript
   - serverless-dynamodb-local
-  # - serverless-offline-dynamodb-streams # endless function call
+  - serverless-plugin-offline-dynamodb-stream
   - serverless-offline-aws-sqs
   - serverless-offline-scheduler
   - serverless-offline
@@ -52,10 +52,15 @@ custom:
       migrate: true
       noStart: true
 
-  # serverless-offline-dynamodb-streams settings
-  serverless-offline-dynamodb-streams:
-    endpoint: ${env:DYNAMODB_ENDPOINT, 'http://localhost:8000'}
-    readInterval: 60000 # milliseconds
+  # serverless-plugin-offline-dynamodb-stream settings
+  dynamodbStream:
+    host: localhost
+    port: 8000
+    pollForever: true
+    streams:
+      - table: ${self:custom.resourcePrefix}-standups
+        functions:
+          - standup
 
   serverless-offline-aws-sqs:
     autoCreate: true
