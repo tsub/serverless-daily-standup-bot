@@ -26,13 +26,23 @@ export const scheduler: ScheduledHandler = async (
   _context,
   callback
 ) => {
-  const date = moment();
-  const currentDate = date.format("YYYY-MM-DD");
-  const currentTimestamp = date.unix().toString();
-  const settings = await getSettingsByNextExecutionTimestamp(
+  const today = moment();
+  const currentDate = today.format("YYYY-MM-DD");
+  const currentTimestamp = today.unix().toString();
+
+  const yesterday = today.subtract(1, "day");
+  const previousDate = yesterday.format("YYYY-MM-DD");
+
+  const currentDateSettings = await getSettingsByNextExecutionTimestamp(
     currentDate,
     currentTimestamp
   );
+  const previousDateSettings = await getSettingsByNextExecutionTimestamp(
+    previousDate,
+    currentTimestamp
+  );
+  const settings = [].concat(...[previousDateSettings, currentDateSettings]);
+
   const sts = new AWS.STS();
   const sqs = new AWS.SQS({ endpoint: sqsEndpoint });
   const getCallerIdentityResponse = await sts.getCallerIdentity().promise();
