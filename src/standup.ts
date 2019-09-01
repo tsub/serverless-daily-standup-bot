@@ -12,7 +12,7 @@ export type Question = {
 
 export type Answer = {
   text: string;
-  postedAt: string;
+  postedAt?: string;
 };
 
 export type Standup = {
@@ -38,7 +38,7 @@ export const saveStandup: (
   const answers = standup.answers.map(answer => ({
     M: {
       text: { S: answer.text },
-      postedAt: { S: answer.postedAt }
+      postedAt: answer.postedAt && { S: answer.postedAt }
     }
   }));
 

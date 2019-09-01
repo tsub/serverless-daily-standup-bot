@@ -221,13 +221,26 @@ Anything blocking your progress?`,
           return;
         }
 
-        standup.answers.push(answer);
+        if (answer.text === "cancel") {
+          standup.answers = standup.questions.map(
+            () => ({ text: "none" } as Answer)
+          );
+        } else {
+          standup.answers.push(answer);
+        }
         await saveStandup(standup);
 
         break;
       case "message_changed":
+        if (standup.answers.every(answer => answer.text === "none")) {
+          break;
+        }
+
         standup.answers.forEach((_, i) => {
-          if (standup.answers[i].postedAt === answer.postedAt) {
+          if (
+            standup.answers[i].postedAt &&
+            standup.answers[i].postedAt === answer.postedAt
+          ) {
             standup.answers[i].text = answer.text;
           }
         });

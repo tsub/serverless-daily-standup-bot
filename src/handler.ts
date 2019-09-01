@@ -241,6 +241,22 @@ export const standup: DynamoDBStreamHandler = async (event, _, callback) => {
     if (standup.finishedAt === undefined) {
       console.log(`finished user: ${userID}`);
 
+      if (standup.answers.every(answer => answer.text === "none")) {
+        const postMessageResponse: WebApi.ChatPostMessageResponse = await slackClient.chat.postMessage(
+          /* eslint-disable @typescript-eslint/camelcase */
+          {
+            token: workspace.botAccessToken,
+            channel: standup.userID,
+            text: "Stand-up canceled.",
+            as_user: true
+          }
+          /* eslint-enable @typescript-eslint/camelcase */
+        );
+        console.log(JSON.stringify(postMessageResponse));
+
+        continue;
+      }
+
       const postMessageResponse: WebApi.ChatPostMessageResponse = await slackClient.chat.postMessage(
         /* eslint-disable @typescript-eslint/camelcase */
         {
