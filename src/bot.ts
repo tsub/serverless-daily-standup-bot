@@ -126,6 +126,11 @@ Anything blocking your progress?`,
       payload
     }: SlackActionMiddlewareArgs<DialogSubmitAction>) => {
       ack();
+
+      if (payload.type !== "dialog_submission") {
+        return;
+      }
+
       console.log(JSON.stringify(payload));
 
       const userIDs = payload.submission.user_ids
@@ -166,35 +171,72 @@ Anything blocking your progress?`,
     }
     console.log(JSON.stringify(payload));
 
-    const answer = {
-      text: payload.text,
-      postedAt: payload.ts
-    } as Answer;
+    let user, team: string;
+    let answer: Answer;
+    switch (payload.subtype) {
+      case undefined: // new message
+        user = payload.user;
+        team = payload.team;
+        answer = {
+          text: payload.text,
+          postedAt: payload.ts
+        } as Answer;
+
+        break;
+      case "message_changed":
+        user = payload.message.user;
+        team = payload.message.team;
+        answer = {
+          text: payload.message.text,
+          postedAt: payload.message.ts
+        } as Answer;
+
+        break;
+      default:
+        console.log(`unsupported message subtype: ${payload.subtype}`);
+        return;
+    }
+
+    console.log(`user: ${user}`);
+    console.log(`team: ${team}`);
+    console.log(`answer: ${JSON.stringify(answer)}`);
 
     const usersInfoResponse: WebApi.UsersInfoResponse = await app.client.users.info(
       {
-        token: context.botToken,
-        user: payload.user
+        token: context.userToken,
+        user: user
       }
     );
     const currentDate = moment()
       .tz(usersInfoResponse.user.tz)
       .format("YYYY-MM-DD");
 
-    const standup = await getStandup(payload.team, payload.user, currentDate);
+    const standup = await getStandup(team, user, currentDate);
     console.log(JSON.stringify(standup));
 
-    switch (payload.sub_type) {
+    switch (payload.subtype) {
       case undefined: // new message
         if (standup.answers.length >= standup.questions.length) {
-          break;
+          // Skip if already finished
+          return;
         }
 
         standup.answers.push(answer);
         await saveStandup(standup);
 
         break;
+      case "message_changed":
+        standup.answers.forEach((_, i) => {
+          if (standup.answers[i].postedAt === answer.postedAt) {
+            standup.answers[i].text = answer.text;
+          }
+        });
+        await saveStandup(standup);
+
+        break;
       default:
+        console.log(`unsupported message subtype: ${payload.subtype}`);
+        return;
     }
   });
 

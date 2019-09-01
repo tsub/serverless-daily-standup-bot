@@ -189,8 +189,6 @@ export const standup: DynamoDBStreamHandler = async (event, _, callback) => {
       continue;
     }
 
-    console.log(`finished user: ${userID}`);
-
     const usersProfileResponse: WebApi.UsersProfileGetResponse = await slackClient.users.profile.get(
       {
         token: workspace.userAccessToken,
@@ -241,6 +239,8 @@ export const standup: DynamoDBStreamHandler = async (event, _, callback) => {
     const blocks = [].concat(...[contextBlock, standupBlocks]);
 
     if (standup.finishedAt === undefined) {
+      console.log(`finished user: ${userID}`);
+
       const postMessageResponse: WebApi.ChatPostMessageResponse = await slackClient.chat.postMessage(
         /* eslint-disable @typescript-eslint/camelcase */
         {
@@ -256,6 +256,9 @@ export const standup: DynamoDBStreamHandler = async (event, _, callback) => {
         /* eslint-enable @typescript-eslint/camelcase */
       );
       console.log(JSON.stringify(postMessageResponse));
+
+      standup.finishedAt = postMessageResponse.message.ts;
+      await saveStandup(standup);
     } else {
       const updateResponse: WebApi.ChatUpdateResponse = await slackClient.chat.update(
         /* eslint-disable @typescript-eslint/camelcase */
