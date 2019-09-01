@@ -10,7 +10,7 @@ service: daily-standup-bot
 
 provider:
   name: aws
-  runtime: nodejs10
+  runtime: nodejs10.x
   region: ${env:AWS_REGION, 'us-east-1'}
   iamRoleStatements:
     - Effect: Allow
