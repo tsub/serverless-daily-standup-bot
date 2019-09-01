@@ -190,6 +190,90 @@ export const standup: DynamoDBStreamHandler = async (event, _, callback) => {
     }
 
     console.log(`finished user: ${userID}`);
+
+    const usersProfileResponse: WebApi.UsersProfileGetResponse = await slackClient.users.profile.get(
+      {
+        token: workspace.userAccessToken,
+        user: standup.userID
+      }
+    );
+    console.log(JSON.stringify(usersProfileResponse));
+
+    const botUsersProfileResponse: WebApi.UsersProfileGetResponse = await slackClient.users.profile.get(
+      {
+        token: workspace.userAccessToken,
+        user: workspace.botUserID
+      }
+    );
+    console.log(JSON.stringify(botUsersProfileResponse));
+
+    const contextBlock = {
+      type: "context",
+      elements: [
+        /* eslint-disable @typescript-eslint/camelcase */
+        {
+          type: "image",
+          image_url: botUsersProfileResponse.profile.image_72,
+          alt_text: "bot_icon"
+        },
+        /* eslint-enable @typescript-eslint/camelcase */
+        {
+          type: "mrkdwn",
+          text: `Sent by ${botUsersProfileResponse.profile.real_name}`
+        }
+      ]
+    };
+
+    const standupBlocks = standup.questions.map((_, i) => ({
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `*${standup.questions[i].text}*`
+      },
+      fields: [
+        {
+          type: "mrkdwn",
+          text: standup.answers[i].text
+        }
+      ]
+    }));
+
+    const blocks = [].concat(...[contextBlock, standupBlocks]);
+
+    if (standup.finishedAt === undefined) {
+      const postMessageResponse: WebApi.ChatPostMessageResponse = await slackClient.chat.postMessage(
+        /* eslint-disable @typescript-eslint/camelcase */
+        {
+          token: workspace.botAccessToken,
+          channel: standup.targetChannelID,
+          blocks: blocks,
+          text: "", // Workaround
+          icon_url: usersProfileResponse.profile.image_72,
+          username:
+            usersProfileResponse.profile.display_name ||
+            usersProfileResponse.profile.real_name
+        }
+        /* eslint-enable @typescript-eslint/camelcase */
+      );
+      console.log(JSON.stringify(postMessageResponse));
+    } else {
+      const updateResponse: WebApi.ChatUpdateResponse = await slackClient.chat.update(
+        /* eslint-disable @typescript-eslint/camelcase */
+        {
+          token: workspace.botAccessToken,
+          channel: standup.targetChannelID,
+          blocks: blocks,
+          text: "", // Workaround
+          icon_url: usersProfileResponse.profile.image_72,
+          username:
+            usersProfileResponse.profile.display_name ||
+            usersProfileResponse.profile.real_name,
+          ts: standup.finishedAt
+        }
+        /* eslint-enable @typescript-eslint/camelcase */
+      );
+      console.log(JSON.stringify(updateResponse));
+    }
   }
 
   return callback(null);
