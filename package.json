@@ -40,7 +40,7 @@
     "serverless-offline-scheduler": "^0.3.8",
     "serverless-plugin-offline-dynamodb-stream": "^1.0.19",
     "serverless-plugin-typescript": "^1.1.9",
-    "typescript": "^3.6.2"
+    "typescript": "~3.5.3"
   },
   "scripts": {
     "prestart": "docker-compose up -d",
