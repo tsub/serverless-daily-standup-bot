@@ -28,7 +28,6 @@ provider:
         - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.resourcePrefix}-workspaces
         - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.resourcePrefix}-standups
   environment:
-    SERVERLESS_STAGE: ${self:custom.currentStage}
     SLACK_CLIENT_ID: ${env:SLACK_CLIENT_ID}
     SLACK_CLIENT_SECRET: ${env:SLACK_CLIENT_SECRET}
     SLACK_SIGNING_SECRET: ${env:SLACK_SIGNING_SECRET}
