@@ -3,7 +3,7 @@ plugins:
   - serverless-dynamodb-local
   - serverless-plugin-offline-dynamodb-stream
   - serverless-offline-aws-sqs
-  - serverless-offline-scheduler
+  # - serverless-offline-scheduler # Because it is compiled every time it is executed
   - serverless-offline
 
 service: daily-standup-bot
