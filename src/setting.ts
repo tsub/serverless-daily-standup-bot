@@ -21,12 +21,15 @@ export const dynamoDBClient: AWS.DynamoDB = new AWS.DynamoDB({
 export const saveSetting: (
   _: Setting
 ) => Promise<AWS.DynamoDB.PutItemOutput> = setting => {
+  const userIDs = setting.userIDs.map(userID => ({ S: userID }));
+  const questions = setting.questions.map(question => ({ S: question }));
+
   return dynamoDBClient
     .putItem({
       Item: {
         identifier: { S: `${setting.teamID}.${setting.channelID}` },
-        userIDs: { SS: setting.userIDs },
-        questions: { SS: setting.questions },
+        userIDs: { L: userIDs },
+        questions: { L: questions },
         cronExpression: { S: setting.cronExpression },
         nextExecutionDate: { S: setting.nextExecutionDate },
         nextExecutionTimestamp: { N: setting.nextExecutionTimestamp }
@@ -53,10 +56,13 @@ export const getSetting: (
     return;
   }
 
+  const userIDs = getItemResult.Item.userIDs.L.map(userID => userID.S);
+  const questions = getItemResult.Item.questions.L.map(question => question.S);
+
   return {
     identifier: getItemResult.Item.identifier.S,
-    userIDs: getItemResult.Item.userIDs.SS,
-    questions: getItemResult.Item.questions.SS,
+    userIDs: userIDs,
+    questions: questions,
     cronExpression: getItemResult.Item.cronExpression.S,
     nextExecutionDate: getItemResult.Item.nextExecutionDate.S,
     nextExecutionTimestamp: getItemResult.Item.nextExecutionTimestamp.N,
@@ -85,10 +91,13 @@ export const getSettingsByNextExecutionTimestamp: (
   return queryResult.Items.map(item => {
     const identifier = item.identifier.S;
     const [teamID, channelID] = identifier.split(".");
+    const userIDs = item.userIDs.L.map(userID => userID.S);
+    const questions = item.questions.L.map(question => question.S);
+
     return {
       identifier: identifier,
-      userIDs: item.userIDs.SS,
-      questions: item.questions.SS,
+      userIDs: userIDs,
+      questions: questions,
       cronExpression: item.cronExpression.S,
       nextExecutionDate: item.nextExecutionDate.S,
       nextExecutionTimestamp: item.nextExecutionTimestamp.N,
