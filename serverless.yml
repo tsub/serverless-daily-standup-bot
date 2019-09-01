@@ -66,6 +66,7 @@ custom:
         functions:
           - standup
 
+  # serverless-offline-aws-sqs settings
   serverless-offline-aws-sqs:
     autoCreate: true
     endpoint: ${env:SQS_ENDPOINT, 'http://localhost:9324'}
