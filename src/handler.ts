@@ -222,19 +222,27 @@ export const standup: DynamoDBStreamHandler = async (event, _, callback) => {
       ]
     };
 
-    const standupBlocks = standup.questions.map((_, i) => ({
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `*${standup.questions[i].text}*`
-      },
-      fields: [
-        {
-          type: "mrkdwn",
-          text: standup.answers[i].text
+    const standupBlocks = standup.questions
+      .map((_, i) => {
+        if (standup.answers[i].text === "none") {
+          return;
         }
-      ]
-    }));
+
+        return {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `*${standup.questions[i].text}*`
+          },
+          fields: [
+            {
+              type: "mrkdwn",
+              text: standup.answers[i].text
+            }
+          ]
+        };
+      })
+      .filter(standupBlock => standupBlock !== undefined);
 
     const blocks = [].concat(...[contextBlock, standupBlocks]);
 
@@ -276,6 +284,22 @@ export const standup: DynamoDBStreamHandler = async (event, _, callback) => {
       standup.finishedAt = postMessageResponse.message.ts;
       await saveStandup(standup);
     } else {
+      if (standup.answers.every(answer => answer.text === "none")) {
+        const deleteResponse: WebApi.ChatDeleteResponse = await slackClient.chat.delete(
+          {
+            token: workspace.botAccessToken,
+            channel: standup.targetChannelID,
+            ts: standup.finishedAt
+          }
+        );
+        console.log(JSON.stringify(deleteResponse));
+
+        delete standup.finishedAt;
+        await saveStandup(standup);
+
+        continue;
+      }
+
       const updateResponse: WebApi.ChatUpdateResponse = await slackClient.chat.update(
         /* eslint-disable @typescript-eslint/camelcase */
         {
