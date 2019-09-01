@@ -22,17 +22,17 @@ const authorize: (
 
   try {
     const workspace = await getWorkspace(source.teamId, source.userId);
-    const authTestResult: WebApi.AuthTestResponse = await this.client.auth.test(
+    const usersInfoResponse: WebApi.UsersInfoResponse = await this.client.users.info(
       {
-        token: workspace.botAccessToken
+        token: workspace.botAccessToken,
+        user: workspace.botUserID
       }
     );
-
-    console.log(JSON.stringify(authTestResult));
+    console.log(JSON.stringify(usersInfoResponse));
 
     return {
       botToken: workspace.botAccessToken,
-      botId: authTestResult.user_id,
+      botId: usersInfoResponse.user.profile.bot_id,
       botUserId: workspace.botUserID,
       userToken: workspace.userAccessToken
     };
@@ -47,7 +47,8 @@ export const expressReceiver: ExpressReceiver = new ExpressReceiver({
 
 export const botApp: App = new App({
   receiver: expressReceiver,
-  authorize: authorize
+  authorize: authorize,
+  ignoreSelf: true
 });
 
 export const handleEvents: (_: App) => App = app => {
