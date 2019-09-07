@@ -24,9 +24,16 @@ provider:
         - dynamodb:UpdateItem
       Resource:
         - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.resourcePrefix}-settings
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.resourcePrefix}-settings/index/*
         - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.resourcePrefix}-sessions
         - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.resourcePrefix}-workspaces
         - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.resourcePrefix}-standups
+    - Effect: Allow
+      Action:
+        - sqs:GetQueueUrl
+        - sqs:SendMessage
+      Resource:
+        - arn:aws:sqs:${self:provider.region}:*:${self:custom.resourcePrefix}-start
   environment:
     SLACK_CLIENT_ID: ${env:SLACK_CLIENT_ID}
     SLACK_CLIENT_SECRET: ${env:SLACK_CLIENT_SECRET}
