@@ -11,6 +11,9 @@ Resources:
           AttributeType: S
       BillingMode: PAY_PER_REQUEST
       TableName: ${self:custom.resourcePrefix}-sessions
+      TimeToLiveSpecification:
+        AttributeName: expires
+        Enabled: true
 
   DynamoDBWorkspacesTable:
     Type: AWS::DynamoDB::Table
