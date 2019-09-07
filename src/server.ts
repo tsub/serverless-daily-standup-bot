@@ -4,7 +4,7 @@ import * as OAuth2Strategy from "passport-oauth2";
 import * as session from "express-session";
 import * as connectDynamoDB from "connect-dynamodb";
 import { dynamoDBClient, saveWorkspace } from "./workspace";
-import { botApp, handleEvents } from "./bot";
+import { receiver, botApp, handleEvents } from "./bot";
 import {
   sessionDynamoDBTable,
   sessionSecret,
@@ -17,6 +17,9 @@ import {
   slackTokenURL,
   slackAuthorizationScope
 } from "./config";
+import * as express from "express";
+
+export const expressApp = express();
 
 const verify: OAuth2Strategy.VerifyFunction = async (
   _accessToken,
@@ -38,6 +41,7 @@ const verify: OAuth2Strategy.VerifyFunction = async (
 
 export const routes: (_: Application) => Application = app => {
   handleEvents(botApp);
+  app.post("/slack/events", receiver.requestHandler.bind(receiver));
 
   const DynamoDBStore = connectDynamoDB({ session });
   const DynamoDBStoreOptions = {

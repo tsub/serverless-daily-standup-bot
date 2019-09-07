@@ -1,5 +1,4 @@
-import { expressReceiver } from "./bot";
-import { routes } from "./server";
+import { expressApp, routes } from "./server";
 import { sqsStartQueue, sqsEndpoint } from "./env";
 import serverless = require("serverless-http");
 import {
@@ -19,7 +18,7 @@ import { getWorkspace } from "./workspace";
 import { WebClient } from "@slack/web-api";
 import * as WebApi from "seratch-slack-types/web-api";
 
-export const app = serverless(routes(expressReceiver.app));
+export const app = serverless(routes(expressApp));
 
 export const scheduler: ScheduledHandler = async (
   _event,

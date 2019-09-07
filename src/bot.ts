@@ -1,6 +1,6 @@
 import {
   App,
-  ExpressReceiver,
+  ServerlessReceiver,
   AuthorizeResult,
   AuthorizeSourceData,
   SlackActionMiddlewareArgs,
@@ -41,23 +41,23 @@ const authorize: (
   }
 };
 
-export const expressReceiver: ExpressReceiver = new ExpressReceiver({
+export const receiver: ServerlessReceiver = new ServerlessReceiver({
   signingSecret: slackSigningSecret
 });
 
 export const botApp: App = new App({
-  receiver: expressReceiver,
+  receiver: receiver,
   authorize: authorize,
   ignoreSelf: true
 });
 
 export const handleEvents: (_: App) => App = app => {
-  app.message("hi", directMention(), ({ message, say }) => {
-    say(`Hello, <@${message.user}>`);
+  app.message("hi", directMention(), async ({ message, say }) => {
+    await say(`Hello, <@${message.user}>`);
   });
 
   app.command(`/${appName}`, async ({ payload, ack, say, context }) => {
-    ack();
+    await ack();
     console.log(JSON.stringify(payload));
 
     switch (payload.text) {
@@ -105,6 +105,7 @@ Anything blocking your progress?`,
             /* eslint-enable @typescript-eslint/camelcase */
           }
         );
+        console.log(JSON.stringify(response));
 
         if (response.ok) {
           break;
@@ -113,7 +114,7 @@ Anything blocking your progress?`,
         console.error(response.error);
         break;
       default:
-        say("not support subcommand");
+        await say("not support subcommand");
     }
   });
 
@@ -126,7 +127,7 @@ Anything blocking your progress?`,
       respond,
       payload
     }: SlackActionMiddlewareArgs<DialogSubmitAction>) => {
-      ack();
+      await ack();
 
       if (payload.type !== "dialog_submission") {
         return;
@@ -161,7 +162,10 @@ Anything blocking your progress?`,
       } as Setting);
 
       /* eslint-disable @typescript-eslint/camelcase */
-      respond({ text: "settings succeeded", response_type: "in_channel" });
+      await respond({
+        text: "settings succeeded",
+        response_type: "in_channel"
+      });
       /* eslint-enable @typescript-eslint/camelcase */
     }
   );
