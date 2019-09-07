@@ -4,7 +4,6 @@ import * as moment from "moment";
 import { settingDynamoDBTable, dynamoDBEndpoint } from "./env";
 
 export type Setting = {
-  identifier: string;
   teamID: string;
   channelID: string;
   userIDs: Array<string>;
@@ -27,7 +26,8 @@ export const saveSetting: (
   return dynamoDBClient
     .putItem({
       Item: {
-        identifier: { S: `${setting.teamID}.${setting.channelID}` },
+        teamID: { S: setting.teamID },
+        channelID: { S: setting.channelID },
         userIDs: { L: userIDs },
         questions: { L: questions },
         cronExpression: { S: setting.cronExpression },
@@ -46,7 +46,8 @@ export const getSetting: (
   const getItemResult = await dynamoDBClient
     .getItem({
       Key: {
-        identifier: { S: `${teamID}.${channelID}` }
+        teamID: { S: teamID },
+        channelID: { S: channelID }
       },
       TableName: settingDynamoDBTable
     })
@@ -60,14 +61,13 @@ export const getSetting: (
   const questions = getItemResult.Item.questions.L.map(question => question.S);
 
   return {
-    identifier: getItemResult.Item.identifier.S,
+    teamID: teamID,
+    channelID: channelID,
     userIDs: userIDs,
     questions: questions,
     cronExpression: getItemResult.Item.cronExpression.S,
     nextExecutionDate: getItemResult.Item.nextExecutionDate.S,
-    nextExecutionTimestamp: getItemResult.Item.nextExecutionTimestamp.N,
-    channelID: channelID,
-    teamID: teamID
+    nextExecutionTimestamp: getItemResult.Item.nextExecutionTimestamp.N
   } as Setting;
 };
 
@@ -89,20 +89,17 @@ export const getSettingsByNextExecutionTimestamp: (
     .promise();
 
   return queryResult.Items.map(item => {
-    const identifier = item.identifier.S;
-    const [teamID, channelID] = identifier.split(".");
     const userIDs = item.userIDs.L.map(userID => userID.S);
     const questions = item.questions.L.map(question => question.S);
 
     return {
-      identifier: identifier,
+      teamID: item.teamID.S,
+      channelID: item.channelID.S,
       userIDs: userIDs,
       questions: questions,
       cronExpression: item.cronExpression.S,
       nextExecutionDate: item.nextExecutionDate.S,
-      nextExecutionTimestamp: item.nextExecutionTimestamp.N,
-      channelID: channelID,
-      teamID: teamID
+      nextExecutionTimestamp: item.nextExecutionTimestamp.N
     } as Setting;
   });
 };

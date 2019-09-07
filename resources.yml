@@ -37,10 +37,14 @@ Resources:
     DeletionPolicy: Retain
     Properties:
       KeySchema:
-        - AttributeName: identifier
+        - AttributeName: teamID
           KeyType: HASH
+        - AttributeName: channelID
+          KeyType: RANGE
       AttributeDefinitions:
-        - AttributeName: identifier
+        - AttributeName: teamID
+          AttributeType: S
+        - AttributeName: channelID
           AttributeType: S
         - AttributeName: nextExecutionDate
           AttributeType: S
