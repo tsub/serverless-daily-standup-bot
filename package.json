@@ -4,7 +4,7 @@
   "description": "Serverless Slack app built with Bolt, which runs on AWS",
   "main": "app.js",
   "dependencies": {
-    "@slack/bolt": "https://github.com/deslee/bolt.git#serverless",
+    "@slack/bolt": "https://github.com/tsub/bolt.git#serverless",
     "@slack/events-api": "^2.3.0",
     "@slack/web-api": "^5.1.0",
     "@slack/webhook": "^5.0.1",
