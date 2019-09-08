@@ -81,7 +81,8 @@ export const handleEvents: (_: App) => App = app => {
               elements: [
                 {
                   type: "textarea",
-                  hint: "Please type user ID (not username)",
+                  hint:
+                    "Please type multiple user IDs (not username) in multiple lines",
                   label: "Members",
                   name: "user_ids",
                   placeholder: `W012A3CDE
@@ -90,7 +91,7 @@ W034B4FGH`,
                 },
                 {
                   type: "textarea",
-                  hint: "Please write multiple questions in multiple lines",
+                  hint: "Please type multiple questions in multiple lines",
                   label: "Questions",
                   name: "questions",
                   placeholder: `What did you do yesterday?
@@ -100,8 +101,8 @@ Anything blocking your progress?`,
                 },
                 {
                   type: "text",
-                  hint: "Cron expression",
-                  label: "Execution schedule",
+                  hint: "Please type cron expression to start daily stand-up",
+                  label: "Daily stand-up schedule",
                   name: "cron_expression",
                   placeholder: "0 1 * * MON-FRI",
                   value: setting && setting.cronExpression
