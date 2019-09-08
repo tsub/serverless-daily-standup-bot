@@ -81,7 +81,7 @@ custom:
 
 functions:
   app:
-    handler: src/handler.app
+    handler: src/handlers/app.handler
     events:
       # Bolt App
       - http:
@@ -96,12 +96,12 @@ functions:
           method: get
           path: /slack/oauth/callback
   scheduler:
-    handler: src/handler.scheduler
+    handler: src/handlers/scheduler.handler
     reservedConcurrency: 1
     events:
       - schedule: rate(1 minute)
   start:
-    handler: src/handler.start
+    handler: src/handlers/start.handler
     events:
       - sqs:
           arn:
@@ -109,7 +109,7 @@ functions:
               - SQSStartQueue
               - Arn
   standup:
-    handler: src/handler.standup
+    handler: src/handlers/standup.handler
     events:
       - stream:
           type: dynamodb
