@@ -5,14 +5,20 @@ import {
   AuthorizeSourceData,
   SlackActionMiddlewareArgs,
   DialogSubmitAction,
-  directMention
+  directMention,
+  Context
 } from "@slack/bolt";
 import * as WebApi from "seratch-slack-types/web-api";
 import * as cron from "cron-parser";
 import * as moment from "moment-timezone";
 import { getWorkspace } from "./workspace";
 import { slackSigningSecret, appName } from "./env";
-import { Setting, getSetting, saveSetting } from "./setting";
+import {
+  Setting,
+  getSetting,
+  saveSetting,
+  getSettingsByTeamID
+} from "./setting";
 import { Answer, getStandup, saveStandup } from "./standup";
 
 const authorize: (
@@ -125,11 +131,13 @@ Anything blocking your progress?`,
     async ({
       ack,
       respond,
-      payload
-    }: SlackActionMiddlewareArgs<DialogSubmitAction>) => {
-      await ack();
-
+      payload,
+      context
+    }: SlackActionMiddlewareArgs<DialogSubmitAction> & {
+      context: Context;
+    }) => {
       if (payload.type !== "dialog_submission") {
+        await ack();
         return;
       }
 
@@ -144,16 +152,65 @@ Anything blocking your progress?`,
         .map(question => question.trim())
         .filter(question => question !== "");
       const cronExpression = payload.submission.cron_expression;
-      const schedule = cron.parseExpression(cronExpression, { utc: true });
-      const date = schedule.next().toDate();
-      const nextExecutionDate = moment(date).format("YYYY-MM-DD");
-      const nextExecutionTimestamp = moment(date)
-        .unix()
-        .toString();
+      const teamID = payload.team.id;
+      const channelID = payload.channel.id;
+
+      const errors = [];
+
+      let nextExecutionDate, nextExecutionTimestamp;
+      try {
+        const schedule = cron.parseExpression(cronExpression, { utc: true });
+        const date = schedule.next().toDate();
+        nextExecutionDate = moment(date).format("YYYY-MM-DD");
+        nextExecutionTimestamp = moment(date)
+          .unix()
+          .toString();
+      } catch (err) {
+        errors.push({
+          name: "cron_expression",
+          error: "Invalid cron expression."
+        });
+      }
+
+      const existSettings = await getSettingsByTeamID(teamID);
+      const isNotSelf: (_: Setting) => boolean = setting =>
+        setting.channelID !== channelID;
+
+      for (const userID of userIDs) {
+        try {
+          await app.client.users.info({
+            token: context.botToken,
+            user: userID
+          });
+        } catch (err) {
+          console.error(err);
+          errors.push({
+            name: "user_ids",
+            error: `${userID} not exists in your workspace.`
+          });
+          continue;
+        }
+
+        const includeUserID: (_: Setting) => boolean = setting =>
+          setting.userIDs.includes(userID);
+
+        if (existSettings.filter(isNotSelf).some(includeUserID)) {
+          errors.push({
+            name: "user_ids",
+            error: `${userID} is already joined in ${channelID} meeting.`
+          });
+          continue;
+        }
+      }
+
+      if (errors.length > 0) {
+        await ack({ errors });
+        return;
+      }
 
       await saveSetting({
-        teamID: payload.team.id,
-        channelID: payload.channel.id,
+        teamID: teamID,
+        channelID: channelID,
         userIDs: userIDs,
         questions: questions,
         cronExpression: cronExpression,
@@ -161,6 +218,7 @@ Anything blocking your progress?`,
         nextExecutionTimestamp: nextExecutionTimestamp
       } as Setting);
 
+      await ack();
       /* eslint-disable @typescript-eslint/camelcase */
       await respond({
         text: "settings succeeded",

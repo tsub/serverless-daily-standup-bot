@@ -71,6 +71,39 @@ export const getSetting: (
   } as Setting;
 };
 
+export const getSettingsByTeamID: (
+  _: string
+) => Promise<Array<Setting>> = async teamID => {
+  const queryResult = await dynamoDBClient
+    .query({
+      ExpressionAttributeValues: {
+        ":teamID": { S: teamID }
+      },
+      KeyConditionExpression: "teamID = :teamID",
+      TableName: settingDynamoDBTable
+    })
+    .promise();
+
+  if (queryResult.Items.length === 0) {
+    return [];
+  }
+
+  return queryResult.Items.map(item => {
+    const userIDs = item.userIDs.L.map(userID => userID.S);
+    const questions = item.questions.L.map(question => question.S);
+
+    return {
+      teamID: item.teamID.S,
+      channelID: item.channelID.S,
+      userIDs: userIDs,
+      questions: questions,
+      cronExpression: item.cronExpression.S,
+      nextExecutionDate: item.nextExecutionDate.S,
+      nextExecutionTimestamp: item.nextExecutionTimestamp.N
+    } as Setting;
+  });
+};
+
 export const getSettingsByNextExecutionTimestamp: (
   currentDate: string,
   currentTimestamp: string
