@@ -54,7 +54,9 @@ export const routes: (_: Application) => Application = app => {
   app.use(
     session({
       store: new DynamoDBStore(DynamoDBStoreOptions),
-      secret: sessionSecret
+      secret: sessionSecret,
+      resave: false,
+      saveUninitialized: false
     })
   );
   app.use(passport.initialize());
