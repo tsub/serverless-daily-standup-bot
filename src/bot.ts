@@ -184,7 +184,7 @@ Anything blocking your progress?`,
             user: userID
           });
         } catch (err) {
-          console.error(err);
+          console.log(err);
           errors.push({
             name: "user_ids",
             error: `${userID} not exists in your workspace.`
