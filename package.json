@@ -1,8 +1,8 @@
 {
-  "name": "daily-standup-bot",
-  "version": "1.0.0",
-  "description": "Serverless Slack app built with Bolt, which runs on AWS",
-  "main": "app.js",
+  "name": "serverless-daily-standup-bot",
+  "repository": "github:tsub/serverless-daily-standup-bot",
+  "version": "0.0.1",
+  "description": "A Slack App for asynchronous daily stand-up meeting.",
   "dependencies": {
     "@slack/bolt": "https://github.com/tsub/bolt.git#serverless",
     "@slack/events-api": "^2.3.0",
@@ -51,6 +51,6 @@
     "Slack",
     "Serverless"
   ],
-  "author": "Awesome developers",
+  "author": "Tsubasa Takayama",
   "license": "MIT"
 }
