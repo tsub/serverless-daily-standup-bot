@@ -1,78 +1,74 @@
-# Slack App backend built with Bolt on AWS
+# serverless-daily-standup-bot
 
-## Run the app on your local machine
+A Slack App for asynchronous daily stand-up meeting.
 
-### Configure necessary env variables
+## How to use
+
+TODO
+
+## Development
+
+### Requirements
+
+- [Node.js](https://nodejs.org/)
+- [direnv](https://github.com/direnv/direnv)
+- [ngrok](https://ngrok.com/)
+- [Docker](https://www.docker.com/)
+- [docker-compose](https://docs.docker.com/compose/)
+
+### Create a Slack App
+
+- [Create a Slack App in here](https://api.slack.com/apps)
+- Use these information in "App Credentials" (https://api.slack.com/apps/{apiAppId}/general)
+    - Client ID
+    - Client Secret
+    - Signing Secret
+
+### Setup environment variables
 
 ```bash
-cp _env .env_prod
-cp _env .env_dev
+$ cp .env.skeleton .env.dev
+
+# Fill-in environment variables
+$ vim .env.dev
+
+$ echo "dotenv .env.dev" > .envrc
+$ direnv allow
 ```
 
+### Setup local server
+
 ```bash
-# Slack Tokens https://api.slack.com/docs/oauth
-export SLACK_API_TOKEN=xoxp-xxxxxxxxx
-export SLACK_BOT_TOKEN=xoxb-xxxxxxxxx
-
-# X-Slack-Signature https://api.slack.com/docs/verifying-requests-from-slack
-export SLACK_SIGNING_SECRET=xxxxxxxxx
-
-# OAuth Credentials https://api.slack.com/apps/{apiAppId}/general
-export SLACK_CLIENT_ID=xxxxxxxxx.xxxxxxxxx
-export SLACK_CLIENT_SECRET=xxxxxxxxx
-export SLACK_REDIRECT_URI=https://www.example.com/...
-
-# Incoming Webhook https://api.slack.com/apps/{apiAppId}/incoming-webhooks
-export SLACK_WEBHOOK_URL=https://hooks.slack.com/...
-
-# Serverless Framework
-export SERVERLESS_STAGE=dev
+$ npm i
+$ npm start
 ```
 
 ### Run ngrok proxy on your local machine
 
-https://ngrok.com/
+In another terminal window
 
 ```bash
-ngrok http 3000
+$ ngrok http 3000
 ```
 
-### Create a Slack App
+### Configure a Slack App
 
-https://api.slack.com/apps
-
-- Create a Slack App
-  - Use these information in "App Credentials" (https://api.slack.com/apps/{apiAppId}/general)
-    - Client ID, Client Secret
-    - Signing Secret
-- Add an Incoming Webhook
-  - Set the URL as the env variable: `SLACK_WEBHOOK_URL`
-- Add a Slash Command
-  - `/echo` command
-  - Request URL: `https://{ngrok domain}/slack/events` or `https://{aws}/{stage}/slack/events`
-- Add a Bot user
-  - Enable `bot` permission & add a bot user
-- Enable Interactive Components
-  - Request URL: `https://{ngrok domain}/slack/events` or `https://{aws}/{stage}/slack/events`
-  - Message Actions
-    - Add a random action
-  - Message Menus
-    - Unsupported in this example; If you're interested in this outmoded one, you can return it in any messages with attachments
-- Enable Event Subscriptions
-  - Request URL: `https://{ngrok domain}/slack/events` or `https://{aws}/{stage}/slack/events`
-  - Enable `app_metion`, `message.channels`
-- Add Necessary Permissions
-  - `bot`
-  - `chat:write:bot`
-
-```bash
-npm i
-npm i serverless -g
-serverless offline --printOutput
-```
-
-## Deploy the app onto AWS
-
-```bash
-serverless deploy --stage ${SERVERLESS_STAGE} -v
-```
+- Configure OAuth settings (https://api.slack.com/apps/{apiAppId}/oauth)
+    - Redirect URL: `https://{ngrok domain}/slack/oauth/callback`
+    - Scopes:
+        - `bot`
+        - `chat:write:bot`
+        - `commands`
+        - `users.profile:read`
+- Add a Slash Command (https://api.slack.com/apps/{apiAppId}/slash-commands)
+    - `/daily-standup-bot` command
+    - Request URL: `https://{ngrok domain}/slack/events`
+- Add a Bot user (https://api.slack.com/apps/{apiAppId}/bots)
+    - Enable `bot` permission and add a bot user
+- Enable Interactive Components (https://api.slack.com/apps/{apiAppId}/interactive-messages)
+    - Request URL: `https://{ngrok domain}/slack/events`
+- Enable Event Subscriptions (https://api.slack.com/apps/{apiAppId}/event-subscriptions)
+    - Request URL: `https://{ngrok domain}/slack/events`
+    - Subscribe to Bot Events:
+        - `app_metion`
+        - `message.im`
