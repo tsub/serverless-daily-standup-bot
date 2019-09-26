@@ -13,6 +13,7 @@ github.com/aws/aws-sdk-go v1.15.26 h1:p9fZ5yY1JnB3T0iLQQsLrFY70Pyfft6WcNANHtGOyY
 github.com/aws/aws-sdk-go v1.15.26/go.mod h1:mFuSZ37Z9YOHbQEwBWztmVzqXrEkub65tZoCYDt7FT0=
 github.com/aws/aws-sdk-go v1.15.45 h1:AZQmbZllwfzmoGWnCufXcPEObmdOh4Jb9EiIweh/4Sg=
 github.com/aws/aws-sdk-go v1.18.5/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
+github.com/aws/aws-sdk-go v1.19.18/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
 github.com/aws/aws-sdk-go v1.21.8 h1:Lv6hW2twBhC6mGZAuWtqplEpIIqtVctJg02sE7Qn0Zw=
 github.com/aws/aws-sdk-go v1.21.8/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
 github.com/aws/aws-sdk-go v1.21.10 h1:lTRdgyxraKbnNhx7kWeoW/Uow1TKnSNDpQGTtEXJQgk=
@@ -50,6 +51,8 @@ github.com/guregu/dynamo v1.0.0 h1:N/z3OK/SmaUynhSsySZu0s45hvGWIjp4IX2r5Pbgk1Y=
 github.com/guregu/dynamo v1.0.0/go.mod h1:VmV4PHy8bHJm8xhMD00CdejubOf3wVQxXyLLl2NLC9M=
 github.com/guregu/dynamo v1.3.1 h1:6Er2ymWOnLezka13fihPJO/VhWivpjbHmzU3p2EWoaM=
 github.com/guregu/dynamo v1.3.1/go.mod h1:ZS3tuE64ykQlCnuGfOnAi+ztGZlq0Wo/z5EVQA1fwFY=
+github.com/guregu/dynamo v1.4.1 h1:FN3uX0ezH32AKCov7+5GEANK7R9J5RbrnAeeupxdUx8=
+github.com/guregu/dynamo v1.4.1/go.mod h1:mNKn9Gwq5KlrPIqGx+M0lHXtNmdam7TH1t7oKrRbqZk=
 github.com/jmespath/go-jmespath v0.0.0-20160202185014-0b12d6b521d8 h1:12VvqtR6Aowv3l/EQUlocDHW2Cp4G9WJVH7uyH8QFJE=
 github.com/jmespath/go-jmespath v0.0.0-20160202185014-0b12d6b521d8/go.mod h1:Nht3zPeWKUH0NzdCt2Blrr5ys8VGpn0CEB0cQHVjt7k=
 github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af h1:pmfjZENx5imkbgOkpRUYLnmbU7UEFbjtDA2hxJ1ichM=
