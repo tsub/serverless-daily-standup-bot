@@ -9,7 +9,7 @@
     "sam-export": "sls sam export --output template.yaml"
   },
   "devDependencies": {
-    "serverless": "^1.60.4",
+    "serverless": "^1.61.0",
     "serverless-sam": "^0.2.0"
   }
 }
