@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "description": "A Slack App for asynchronous daily stand-up meeting.",
   "dependencies": {
-    "@slack/bolt": "https://github.com/tsub/bolt.git#serverless",
+    "@slack/bolt": "^2.4.1",
     "@slack/events-api": "^2.3.0",
     "@slack/web-api": "^5.1.0",
     "@slack/webhook": "^5.0.1",

@@ -1,6 +1,6 @@
 import {
   App,
-  ServerlessReceiver,
+  ExpressReceiver,
   AuthorizeResult,
   AuthorizeSourceData,
   SlackActionMiddlewareArgs,
@@ -47,8 +47,9 @@ const authorize: (
   }
 };
 
-export const receiver: ServerlessReceiver = new ServerlessReceiver({
-  signingSecret: slackSigningSecret
+export const receiver: ExpressReceiver = new ExpressReceiver({
+  signingSecret: slackSigningSecret,
+  processBeforeResponse: true
 });
 
 export const botApp: App = new App({
@@ -317,7 +318,7 @@ Anything blocking your progress?`,
     }
   });
 
-  app.error(error => {
+  app.error(async error => {
     console.error(error);
   });
 

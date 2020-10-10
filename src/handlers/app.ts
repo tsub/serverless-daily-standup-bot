@@ -1,4 +1,5 @@
-import { expressApp, routes } from "../server";
+import { routes } from "../server";
+import { receiver } from "../bot";
 import serverless = require("serverless-http");
 
-export const handler = serverless(routes(expressApp));
+export const handler = serverless(routes(receiver.app));
